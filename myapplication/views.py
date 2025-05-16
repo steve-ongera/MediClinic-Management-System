@@ -71,104 +71,93 @@ def logout_view(request):
     return redirect('login')  # Change 'login' to your login view name or URL
 
 
-
-
-class AdminDashboardView(UserPassesTestMixin, View):
-    template_name = 'admin/dashboard.html'
+from django.contrib.auth.decorators import login_required, user_passes_test
+@login_required
+def admin_dashboard_view(request):
+    date_filter = request.GET.get('date_filter', 'month')
     
-    def test_func(self):
-        return self.request.user.is_authenticated and self.request.user.user_type == 'ADMIN'
+    if date_filter == 'week':
+        start_date = timezone.now() - timedelta(days=7)
+    elif date_filter == 'month':
+        start_date = timezone.now() - timedelta(days=30)
+    elif date_filter == 'quarter':
+        start_date = timezone.now() - timedelta(days=90)
+    elif date_filter == 'year':
+        start_date = timezone.now() - timedelta(days=365)
+    else:
+        start_date = timezone.now() - timedelta(days=30)  # Default to month
+
+    # Summary data
+    total_patients = Patient.objects.count()
+    total_doctors = User.objects.filter(user_type='DOCTOR').count()
+    total_medicines = Medicine.objects.count()
+    total_revenue = MedicineSale.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+
+    # Top 5 diseases
+    common_diseases = Disease.objects.annotate(
+        count=Count('consultation')
+    ).order_by('-count')[:5]
     
-    def get(self, request):
-        # Date range filters
-        date_filter = request.GET.get('date_filter', 'month')
-        
-        if date_filter == 'week':
-            start_date = timezone.now() - timedelta(days=7)
-        elif date_filter == 'month':
-            start_date = timezone.now() - timedelta(days=30)
-        elif date_filter == 'quarter':
-            start_date = timezone.now() - timedelta(days=90)
-        elif date_filter == 'year':
-            start_date = timezone.now() - timedelta(days=365)
-        else:
-            start_date = timezone.now() - timedelta(days=30)  # Default to month
-        
-        # Get summary counts
-        total_patients = Patient.objects.count()
-        total_doctors = User.objects.filter(user_type='DOCTOR').count()
-        total_medicines = Medicine.objects.count()
-        total_revenue = MedicineSale.objects.aggregate(total=Sum('total_amount'))['total'] or 0
-        
-        # Top 5 common diseases (from consultations)
-        common_diseases = Disease.objects.annotate(
-            count=Count('consultation')
-        ).order_by('-count')[:5]
-        
-        disease_labels = [disease.name for disease in common_diseases]
-        disease_counts = [disease.count for disease in common_diseases]
-        
-        # Best selling medicines
-        best_selling = SoldMedicine.objects.values(
-            'medicine__name'
-        ).annotate(
-            total_sold=Sum('quantity')
-        ).order_by('-total_sold')[:5]
-        
-        medicine_labels = [item['medicine__name'] for item in best_selling]
-        medicine_counts = [item['total_sold'] for item in best_selling]
-        
-        # Monthly sales data for the line chart
-        sales_data = MedicineSale.objects.filter(
-            sale_date__gte=start_date
-        ).annotate(
-            date=Trunc('sale_date', 'day', output_field=DateTimeField())
-        ).values('date').annotate(
-            total=Sum('total_amount')
-        ).order_by('date')
-        
-        sales_dates = [item['date'].strftime('%Y-%m-%d') for item in sales_data]
-        sales_amounts = [float(item['total']) for item in sales_data]
-        
-        # Payment method distribution
-        payment_methods = MedicineSale.objects.filter(
-            sale_date__gte=start_date
-        ).values('payment_method').annotate(
-            count=Count('id'),
-            total=Sum('total_amount')
-        ).order_by('-total')
-        
-        payment_labels = [method['payment_method'] for method in payment_methods]
-        payment_totals = [float(method['total']) for method in payment_methods]
-        
-        # Recent appointments
-        recent_appointments = Appointment.objects.select_related(
-            'patient', 'doctor'
-        ).order_by('-scheduled_time')[:5]
-        
-        # Low stock medicines
-        low_stock = Medicine.objects.filter(
-            quantity_in_stock__lte=F('reorder_level')
-        ).order_by('quantity_in_stock')[:5]
-        
-        context = {
-            'total_patients': total_patients,
-            'total_doctors': total_doctors,
-            'total_medicines': total_medicines,
-            'total_revenue': total_revenue,
-            'date_filter': date_filter,
-            'disease_labels': json.dumps(disease_labels),
-            'disease_counts': json.dumps(disease_counts),
-            'medicine_labels': json.dumps(medicine_labels),
-            'medicine_counts': json.dumps(medicine_counts),
-            'sales_dates': json.dumps(sales_dates),
-            'sales_amounts': json.dumps(sales_amounts),
-            'payment_labels': json.dumps(payment_labels),
-            'payment_totals': json.dumps(payment_totals),
-            'recent_appointments': recent_appointments,
-            'low_stock': low_stock,
-        }
-        
-        return render(request, self.template_name, context)
+    disease_labels = [d.name for d in common_diseases]
+    disease_counts = [d.count for d in common_diseases]
 
+    # Top 5 best-selling medicines
+    best_selling = SoldMedicine.objects.values('medicine__name').annotate(
+        total_sold=Sum('quantity')
+    ).order_by('-total_sold')[:5]
 
+    medicine_labels = [item['medicine__name'] for item in best_selling]
+    medicine_counts = [item['total_sold'] for item in best_selling]
+
+    # Line chart sales data
+    sales_data = MedicineSale.objects.filter(
+        sale_date__gte=start_date
+    ).annotate(
+        date=Trunc('sale_date', 'day', output_field=DateTimeField())
+    ).values('date').annotate(
+        total=Sum('total_amount')
+    ).order_by('date')
+
+    sales_dates = [item['date'].strftime('%Y-%m-%d') for item in sales_data]
+    sales_amounts = [float(item['total']) for item in sales_data]
+
+    # Payment method stats
+    payment_methods = MedicineSale.objects.filter(
+        sale_date__gte=start_date
+    ).values('payment_method').annotate(
+        count=Count('id'),
+        total=Sum('total_amount')
+    ).order_by('-total')
+
+    payment_labels = [p['payment_method'] for p in payment_methods]
+    payment_totals = [float(p['total']) for p in payment_methods]
+
+    # Recent appointments
+    recent_appointments = Appointment.objects.select_related(
+        'patient', 'doctor'
+    ).order_by('-scheduled_time')[:5]
+
+    # Low stock medicines
+    low_stock = Medicine.objects.filter(
+        quantity_in_stock__lte=F('reorder_level')
+    ).order_by('quantity_in_stock')[:5]
+
+    context = {
+        'total_patients': total_patients,
+        'total_doctors': total_doctors,
+        'total_medicines': total_medicines,
+        'total_revenue': total_revenue,
+        'date_filter': date_filter,
+        'disease_labels': json.dumps(disease_labels),
+        'disease_counts': json.dumps(disease_counts),
+        'medicine_labels': json.dumps(medicine_labels),
+        'medicine_counts': json.dumps(medicine_counts),
+        'sales_dates': json.dumps(sales_dates),
+        'sales_amounts': json.dumps(sales_amounts),
+        'payment_labels': json.dumps(payment_labels),
+        'payment_totals': json.dumps(payment_totals),
+        'recent_appointments': recent_appointments,
+        'low_stock': low_stock,
+    }
+
+    return render(request, 'dashboard/admin_dashboard.html', context)

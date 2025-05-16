@@ -1,0 +1,577 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+{% block title %}Coca-Cola ERP Dashboard{% endblock %}
+
+{% block content %}
+<div class="message-container" id="system-messages">
+  {% for message in messages %}
+  <div class="alert-message alert-{{ message.tags }}">
+      {{ message }}
+      <span class="close-message">&times;</span>
+  </div>
+  {% endfor %}
+</div>
+
+<div class="pagetitle">
+    <h1>Dashboard</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{% url 'admin_dashboard'%}">Home</a></li>
+        <li class="breadcrumb-item active">Dashboard</li>
+        <li class="breadcrumb-item"> {{ request.user.username }}</li>
+      </ol>
+    </nav>
+</div><!-- End Page Title -->
+
+<section class="section dashboard">
+    <div class="row">
+      <!-- Left side columns -->
+      <div class="col-lg-8">
+        <div class="row">
+          <!-- Employees Card -->
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card sales-card" style="border-left: 5px solid #F40009;">
+              <div class="card-body">
+                <h5 class="card-title">Total Employees</h5>
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #F40009;">
+                    <i class="bi bi-people text-white"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6>{{ total_employees }}</h6>
+                    <span class="text-success small pt-1 fw-bold"></span> 
+                    <span class="text-muted small pt-2 ps-1"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- End Employees Card -->
+
+          <!-- Active Employees Card -->
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card revenue-card" style="border-left: 5px solid #4CAF50;">
+              <div class="card-body">
+                <h5 class="card-title">Active Employees</h5>
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #4CAF50;">
+                    <i class="bi bi-person-check text-white"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6>{{ active_employees }}</h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- End Active Employees Card -->
+
+          <!-- On Leave Card -->
+          <div class="col-xxl-4 col-md-6">
+            <div class="card info-card customers-card" style="border-left: 5px solid #FFC107;">
+              <div class="card-body">
+                <h5 class="card-title">On Leave</h5>
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #FFC107;">
+                    <i class="bi bi-person-dash text-white"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6>{{ on_leave }}</h6>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- End On Leave Card -->
+
+          <!-- Payroll Card -->
+          <div class="col-xxl-6 col-md-6">
+            <div class="card info-card revenue-card" style="border-left: 5px solid #2196F3;">
+              <div class="card-body">
+                <h5 class="card-title">Monthly Payroll</h5>
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #2196F3;">
+                    <i class="bi bi-cash-stack text-white"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6>KES{{ payroll_summary.total_payroll|floatformat:2 }}</h6>
+                    <span class="text-muted small">Avg: KES{{ payroll_summary.avg_salary|floatformat:2 }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- End Payroll Card -->
+
+          <!-- Inventory Card -->
+          <div class="col-xxl-6 col-md-6">
+            <div class="card info-card sales-card" style="border-left: 5px solid #9C27B0;">
+              <div class="card-body">
+                <h5 class="card-title">Inventory Status</h5>
+                <div class="d-flex align-items-center">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #9C27B0;">
+                    <i class="bi bi-box-seam text-white"></i>
+                  </div>
+                  <div class="ps-3">
+                    <h6>{{ total_products }} Products</h6>
+                    <span class="text-danger small">{{ low_stock_items }} low stock</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div><!-- End Inventory Card -->
+
+          <!-- Department Distribution Chart -->
+          <div class="col-12">
+            <div class="card">
+                <div class="filter">
+                    <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                        <li class="dropdown-header text-start">
+                            <h6>Filter</h6>
+                        </li>
+                        <li><a class="dropdown-item filter-department active" href="#" data-filter="all">All Departments</a></li>
+                        <li><a class="dropdown-item filter-department" href="#" data-filter="large">Large Departments</a></li>
+                    </ul>
+                </div>
+                <div class="card-body">
+                    <h5 class="card-title">Employee Distribution by Department</h5>
+                    <div class="chart-container" style="position: relative; height:300px; width:100%">
+                        <canvas id="departmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+          </div>
+
+          <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                // Department Chart
+                const deptLabels = JSON.parse('{{ dept_labels|escapejs }}');
+                const deptData = JSON.parse('{{ dept_data|escapejs }}');
+                
+                const deptCtx = document.getElementById('departmentChart').getContext('2d');
+                const departmentChart = new Chart(deptCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: deptLabels,
+                        datasets: [{
+                            data: deptData,
+                            backgroundColor: [
+                                '#F40009', // Coca-Cola Red
+                                '#4CAF50', // Green
+                                '#2196F3', // Blue
+                                '#FFC107', // Yellow
+                                '#9C27B0', // Purple
+                                '#607D8B', // Gray
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        return `${context.label}: ${context.raw} employees`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            
+                // Filter functionality
+                document.querySelectorAll('.filter-department').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        
+                        document.querySelectorAll('.filter-department').forEach(el => {
+                            el.classList.remove('active');
+                        });
+                        this.classList.add('active');
+                        
+                        const filterType = this.getAttribute('data-filter');
+                        let filteredLabels = deptLabels;
+                        let filteredData = deptData;
+                        
+                        if (filterType === 'large') {
+                            // Show only departments with more than 10 employees
+                            filteredLabels = [];
+                            filteredData = [];
+                            for (let i = 0; i < deptData.length; i++) {
+                                if (deptData[i] > 10) {
+                                    filteredLabels.push(deptLabels[i]);
+                                    filteredData.push(deptData[i]);
+                                }
+                            }
+                        }
+                        
+                        departmentChart.data.labels = filteredLabels;
+                        departmentChart.data.datasets[0].data = filteredData;
+                        departmentChart.update();
+                    });
+                });
+            });
+            </script>
+        <!-- End Department Chart -->
+
+          <!-- Recent Sales Orders -->
+          <div class="col-12">
+            <div class="card recent-sales overflow-auto">
+              <div class="filter">
+                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                  <li class="dropdown-header text-start">
+                    <h6>Filter</h6>
+                  </li>
+                  <li><a class="dropdown-item" href="#">Today</a></li>
+                  <li><a class="dropdown-item" href="#">This Month</a></li>
+                  <li><a class="dropdown-item" href="#">This Year</a></li>
+                </ul>
+              </div>
+              <div class="card-body">
+                <h5 class="card-title">Recent Sales Orders <span>| This Month</span></h5>
+                <table class="table table-borderless">
+                  <thead>
+                    <tr>
+                      <th scope="col">Order #</th>
+                      <th scope="col">Customer</th>
+                      <th scope="col">Amount</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for order in recent_orders %}
+                    <tr>
+                      <td><a href="#" class="text-primary">SO-{{ order.order_number }}</a></td>
+                      <td>{{ order.customer.name }}</td>
+                      <td>ksh{{ order.total_amount }}</td>
+                      <td><span class="badge bg-{% if order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                        {{ order.get_status_display }}
+                      </span></td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div><!-- End Recent Sales -->
+
+          <!-- Recent Purchases -->
+          <div class="col-12">
+            <div class="card top-selling overflow-auto">
+              <div class="filter">
+                <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                  <li class="dropdown-header text-start">
+                    <h6>Filter</h6>
+                  </li>
+                  <li><a class="dropdown-item" href="#">Today</a></li>
+                  <li><a class="dropdown-item" href="#">This Month</a></li>
+                  <li><a class="dropdown-item" href="#">This Year</a></li>
+                </ul>
+              </div>
+              <div class="card-body pb-0">
+                <h5 class="card-title">Recent Purchase Orders <span>| This Month</span></h5>
+                <table class="table table-borderless">
+                  <thead>
+                    <tr>
+                      <th scope="col">PO #</th>
+                      <th scope="col">Supplier</th>
+                      <th scope="col">Amount</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for purchase in recent_purchases %}
+                    <tr>
+                      <td><a href="#" class="text-primary">PO-{{ purchase.order_number }}</a></td>
+                      <td>{{ purchase.supplier.name }}</td>
+                      <td>ksh{{ purchase.total_amount }}</td>
+                      <td><span class="badge bg-{% if purchase.status == 'received' %}success{% elif purchase.status == 'cancelled' %}danger{% else %}warning{% endif %}">
+                        {{ purchase.get_status_display }}
+                      </span></td>
+                    </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div><!-- End Recent Purchases -->
+        </div>
+      </div><!-- End Left side columns -->
+
+      <!-- Right side columns -->
+      <div class="col-lg-4">
+        <!-- Attendance Chart -->
+        <div class="card">
+          <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                  <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                  </li>
+                  <li><a class="dropdown-item filter-attendance active" href="#" data-period="30">Last 30 Days</a></li>
+                  <li><a class="dropdown-item filter-attendance" href="#" data-period="7">Last 7 Days</a></li>
+              </ul>
+          </div>
+          <div class="card-body">
+              <h5 class="card-title">Attendance Status <span>| Last 30 Days</span></h5>
+              <div class="chart-container" style="position: relative; height:300px; width:100%">
+                  <canvas id="attendanceChart"></canvas>
+              </div>
+          </div>
+      </div>
+      
+      <script>
+      document.addEventListener("DOMContentLoaded", () => {
+          // Attendance Chart
+          const attLabels = JSON.parse('{{ attendance_labels|escapejs }}');
+          const attData = JSON.parse('{{ attendance_data|escapejs }}');
+          
+          const attCtx = document.getElementById('attendanceChart').getContext('2d');
+          const attendanceChart = new Chart(attCtx, {
+              type: 'bar',
+              data: {
+                  labels: attLabels,
+                  datasets: [{
+                      label: 'Number of Days',
+                      data: attData,
+                      backgroundColor: [
+                          '#4CAF50', // Present - Green
+                          '#F40009', // Absent - Red
+                          '#FFC107', // Half Day - Yellow
+                      ],
+                      borderColor: [
+                          '#388E3C',
+                          '#D32F2F',
+                          '#FFA000',
+                      ],
+                      borderWidth: 1
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                      y: {
+                          beginAtZero: true,
+                          title: {
+                              display: true,
+                              text: 'Number of Records'
+                          }
+                      },
+                      x: {
+                          title: {
+                              display: true,
+                              text: 'Attendance Status'
+                          }
+                      }
+                  },
+                  plugins: {
+                      legend: {
+                          display: false
+                      }
+                  }
+              }
+          });
+      
+          // Filter functionality would require AJAX calls to get different time periods
+          document.querySelectorAll('.filter-attendance').forEach(item => {
+              item.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  
+                  document.querySelectorAll('.filter-attendance').forEach(el => {
+                      el.classList.remove('active');
+                  });
+                  this.classList.add('active');
+                  
+                  // In a real implementation, you would make an AJAX call here
+                  // to get data for the selected period
+                  const period = this.getAttribute('data-period');
+                  document.querySelector('.card-title span').textContent = `| Last ${period} Days`;
+                  
+                  // For demo purposes, we'll just show a message
+                  console.log(`Would fetch data for last ${period} days`);
+              });
+          });
+      });
+      </script>
+        <!-- End Attendance Chart -->
+
+        <!-- Sales Trend Chart -->
+        <div class="card">
+          <div class="filter">
+              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+                  <li class="dropdown-header text-start">
+                      <h6>Filter</h6>
+                  </li>
+                  <li><a class="dropdown-item filter-sales active" href="#" data-period="7">Last 7 Days</a></li>
+                  <li><a class="dropdown-item filter-sales" href="#" data-period="30">Last 30 Days</a></li>
+              </ul>
+          </div>
+          <div class="card-body">
+              <h5 class="card-title">Sales Trend <span>| Last 7 Days</span></h5>
+              <div class="chart-container" style="position: relative; height:300px; width:100%">
+                  <canvas id="salesTrendChart"></canvas>
+              </div>
+          </div>
+      </div>
+      
+      <script>
+      document.addEventListener("DOMContentLoaded", () => {
+          // Sales Trend Chart
+          const salesDates = JSON.parse('{{ sales_dates|escapejs }}');
+          const salesAmounts = JSON.parse('{{ sales_amounts|escapejs }}');
+          
+          const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
+          const salesTrendChart = new Chart(salesCtx, {
+              type: 'line',
+              data: {
+                  labels: salesDates,
+                  datasets: [{
+                      label: 'Daily Sales (ksh)',
+                      data: salesAmounts,
+                      backgroundColor: 'rgba(244, 0, 9, 0.2)', // Coca-Cola Red with opacity
+                      borderColor: '#F40009', // Coca-Cola Red
+                      borderWidth: 2,
+                      tension: 0.1,
+                      fill: true
+                  }]
+              },
+              options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                      y: {
+                          beginAtZero: false,
+                          title: {
+                              display: true,
+                              text: 'Sales Amount (ksh)'
+                          }
+                      },
+                      x: {
+                          title: {
+                              display: true,
+                              text: 'Date'
+                          }
+                      }
+                  },
+                  plugins: {
+                      tooltip: {
+                          callbacks: {
+                              label: function(context) {
+                                  return `Sales: ksh${context.raw.toFixed(2)}`;
+                              }
+                          }
+                      }
+                  }
+              }
+          });
+      
+          // Filter functionality would require AJAX calls to get different time periods
+          document.querySelectorAll('.filter-sales').forEach(item => {
+              item.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  
+                  document.querySelectorAll('.filter-sales').forEach(el => {
+                      el.classList.remove('active');
+                  });
+                  this.classList.add('active');
+                  
+                  const period = this.getAttribute('data-period');
+                  document.querySelector('.card-title span').textContent = `| Last ${period} Days`;
+                  
+                  // In a real implementation, you would make an AJAX call here
+                  console.log(`Would fetch sales data for last ${period} days`);
+              });
+          });
+      });
+      </script>
+        <!-- End Sales Trend Chart -->
+
+        <!-- Recent Deliveries -->
+        <div class="card">
+          <div class="filter">
+            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
+              <li class="dropdown-header text-start">
+                <h6>Filter</h6>
+              </li>
+              <li><a class="dropdown-item" href="#">Today</a></li>
+              <li><a class="dropdown-item" href="#">This Month</a></li>
+              <li><a class="dropdown-item" href="#">This Year</a></li>
+            </ul>
+          </div>
+          <div class="card-body pb-0">
+            <h5 class="card-title">Recent Deliveries <span>| This Week</span></h5>
+            <div class="news">
+              {% for delivery in recent_deliveries %}
+              <div class="post-item clearfix">
+                <div class="d-flex justify-content-between">
+                  <div>
+                    <h6>DEL-{{ delivery.delivery_number }}</h6>
+                    <p class="mb-0">SO-{{ delivery.sales_order.order_number }}</p>
+                    <small class="text-muted">Scheduled: {{ delivery.scheduled_date|date:"M d, Y" }}</small>
+                  </div>
+                  <span class="badge bg-{% if delivery.status == 'delivered' %}success{% elif delivery.status == 'failed' %}danger{% else %}warning{% endif %}">
+                    {{ delivery.get_status_display }}
+                  </span>
+                </div>
+                <hr class="my-2">
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+        </div><!-- End Recent Deliveries -->
+
+        <!-- News & Updates -->
+        <div class="card">
+          <div class="card-body pb-0">
+            <h5 class="card-title">Coca-Cola News <span>| Today</span></h5>
+            <div class="news">
+              <div class="post-item clearfix">
+                <img src="{% static 'img/coca-cola-news.jpg' %}" alt="" class="img-fluid rounded">
+                <h4><a href="#">New Product Launch</a></h4>
+                <p>Coca-Cola introduces new zero-sugar variant in eco-friendly packaging...</p>
+              </div>
+              <div class="post-item clearfix">
+                <h4><a href="#">Sustainability Initiative</a></h4>
+                <p>Company announces new recycling program across all facilities...</p>
+              </div>
+              <div class="post-item clearfix">
+                <h4><a href="#">Quarterly Results</a></h4>
+                <p>Strong Q2 performance with 8% revenue growth in North America...</p>
+              </div>
+            </div>
+          </div>
+        </div><!-- End News & Updates -->
+      </div><!-- End Right side columns -->
+    </div>
+</section>
+
+<style>
+  /* Coca-Cola Theme Colors */
+  .card-icon[style*="background-color: #F40009;"] {
+    background-color: #F40009 !important; /* Coca-Cola Red */
+  }
+  
+  /* Hover effects for cards */
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(244, 0, 9, 0.1);
+    transition: all 0.3s ease;
+  }
+
+  
+  
+  
+</style>
+
+
+{% endblock %}

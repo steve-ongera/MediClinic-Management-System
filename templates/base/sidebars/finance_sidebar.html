@@ -1,0 +1,141 @@
+{% load static %}
+<!-- ======= Coca-Cola Finance Sidebar ======= -->
+<aside id="sidebar" class="sidebar" style="border-right: 3px solid #f40009;">
+    <div class="sidebar-brand text-center py-3">
+        <img src="{% static 'images/coca-cola-logo-small.png' %}" alt="Coca-Cola" style="height: 40px;">
+        <h6 class="mt-2 text-uppercase" style="color: #f40009; font-weight: 600;">Finance Portal</h6>
+        <div class="badge bg-white text-danger mt-1">v3.1.2</div>
+    </div>
+
+    <ul class="sidebar-nav" id="sidebar-nav">
+
+        <!-- Financial Dashboard -->
+        <li class="nav-item">
+            <a class="nav-link" href="#" style="border-left: 3px solid #f40009;">
+                <i class="bi bi-graph-up-arrow" style="color: #f40009;"></i>
+                <span>Financial Dashboard</span>
+            </a>
+        </li>
+
+        <!-- Accounting -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#accounting-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-journal-bookmark" style="color: #f40009;"></i>
+                <span>Accounting</span>
+                <i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="accounting-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="#"><i class="bi bi-cash-stack"></i> Accounts Payable</a></li>
+                <li><a href="#"><i class="bi bi-receipt"></i> Accounts Receivable</a></li>
+                <li><a href="#"><i class="bi bi-journal-text"></i> General Ledger</a></li>
+                <li><a href="#"><i class="bi bi-arrow-repeat"></i> Reconciliations</a></li>
+                <li><a href="#"><i class="bi bi-file-earmark-spreadsheet"></i> Financial Statements</a></li>
+            </ul>
+        </li>
+
+        <!-- Treasury -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#treasury-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-safe" style="color: #f40009;"></i>
+                <span>Treasury</span>
+                <i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="treasury-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="#"><i class="bi bi-bank"></i> Cash Management</a></li>
+                <li><a href="#"><i class="bi bi-currency-exchange"></i> Forex Transactions</a></li>
+                <li><a href="#"><i class="bi bi-piggy-bank"></i> Investments</a></li>
+                <li><a href="#"><i class="bi bi-lightning-charge"></i> Quick Payments</a></li>
+            </ul>
+        </li>
+
+        <!-- Budgeting -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#budget-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-pie-chart" style="color: #f40009;"></i>
+                <span>Budgeting</span>
+                <i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="budget-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="#"><i class="bi bi-file-earmark-plus"></i> Budget Creation</a></li>
+                <li><a href="#"><i class="bi bi-graph-up"></i> Budget vs Actual</a></li>
+                <li><a href="#"><i class="bi bi-funnel"></i> Cost Center Analysis</a></li>
+                <li><a href="#"><i class="bi bi-clipboard2-pulse"></i> Forecast Adjustments</a></li>
+            </ul>
+        </li>
+
+        <!-- Tax & Compliance -->
+        <li class="nav-item">
+            <a class="nav-link collapsed" data-bs-target="#tax-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-file-earmark-check" style="color: #f40009;"></i>
+                <span>Tax & Compliance</span>
+                <i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="tax-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="#"><i class="bi bi-file-earmark-text"></i> Tax Filings</a></li>
+                <li><a href="#"><i class="bi bi-shield-check"></i> SOX Controls</a></li>
+                <li><a href="#"><i class="bi bi-globe2"></i> Regional Compliance</a></li>
+                <li><a href="#"><i class="bi bi-archive"></i> Audit Trails</a></li>
+            </ul>
+        </li>
+
+        <!-- Coca-Cola Financial Tools -->
+        <li class="nav-heading" style="color: #f40009;">Coca-Cola Finance</li>
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#">
+                <i class="bi bi-coin" style="color: #f40009;"></i>
+                <span>Global Treasury</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#">
+                <i class="bi bi-building-check" style="color: #f40009;"></i>
+                <span>Bottler Accounting</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#">
+                <i class="bi bi-tags" style="color: #f40009;"></i>
+                <span>Trade Promotions</span>
+            </a>
+        </li>
+
+        <!-- Reports -->
+        <li class="nav-heading">Advanced</li>
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#">
+                <i class="bi bi-file-earmark-bar-graph"></i>
+                <span>Financial Modeling</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#">
+                <i class="bi bi-cpu"></i>
+                <span>ERP Integration</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Logout</span>
+            </a>
+        </li>
+
+    </ul>
+
+    <!-- Finance Quick Actions -->
+    <div class="sidebar-footer p-3">
+        <button class="btn btn-sm btn-danger w-100 mb-2">
+            <i class="bi bi-cash-coin"></i> Approve Payments
+            <span class="badge bg-white text-danger ms-2">12</span>
+        </button>
+        <button class="btn btn-sm btn-outline-danger w-100">
+            <i class="bi bi-file-earmark-excel"></i> Export Reports
+        </button>
+    </div>
+</aside>

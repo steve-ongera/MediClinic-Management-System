@@ -257,7 +257,7 @@
                         <h5 class="mb-0" style="color: #F40009;">
                             <i class="fas fa-clipboard-list me-2"></i>Recent Orders
                         </h5>
-                        <a href="{% url 'sales_order_list' %}" class="btn btn-sm btn-outline-secondary">
+                        <a href="#" class="btn btn-sm btn-outline-secondary">
                             View All
                         </a>
                     </div>
@@ -278,7 +278,7 @@
                                 {% for order in recent_orders %}
                                 <tr>
                                     <td>
-                                        <a href="{% url 'sales_order_detail' order.pk %}" class="fw-bold">
+                                        <a href="#" class="fw-bold">
                                             {{ order.order_number }}
                                         </a>
                                     </td>

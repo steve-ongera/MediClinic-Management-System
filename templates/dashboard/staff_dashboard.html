@@ -1,7 +1,7 @@
 {% extends "base/base.html" %}
 {% load static %}
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="#" rel="stylesheet">
 
 {% block title %}Coca-Cola Staff Portal{% endblock %}
 
@@ -19,7 +19,7 @@
     <h1>Staff Dashboard</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'staff_dashboard' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="#">Home</a></li>
         <li class="breadcrumb-item active">Dashboard</li>
         <li class="breadcrumb-item">{{ request.user.get_full_name }}</li>
       </ol>
@@ -104,25 +104,25 @@
                 <h5 class="card-title">Quick Actions</h5>
                 <div class="row text-center">
                   <div class="col-md-3 col-6 mb-3">
-                    <a href="{% url 'clock_in_out' %}" class="btn btn-danger btn-sm w-100 py-2">
+                    <a href="#" class="btn btn-danger btn-sm w-100 py-2">
                       <i class="bi bi-qr-code-scan"></i><br>
                       Clock In/Out
                     </a>
                   </div>
                   <div class="col-md-3 col-6 mb-3">
-                    <a href="{% url 'report_issue' %}" class="btn btn-outline-danger btn-sm w-100 py-2">
+                    <a href="#" class="btn btn-outline-danger btn-sm w-100 py-2">
                       <i class="bi bi-exclamation-triangle"></i><br>
                       Report Issue
                     </a>
                   </div>
                   <div class="col-md-3 col-6 mb-3">
-                    <a href="{% url 'request_supplies' %}" class="btn btn-outline-danger btn-sm w-100 py-2">
+                    <a href="#" class="btn btn-outline-danger btn-sm w-100 py-2">
                       <i class="bi bi-box-seam"></i><br>
                       Request Supplies
                     </a>
                   </div>
                   <div class="col-md-3 col-6 mb-3">
-                    <a href="{% url 'submit_idea' %}" class="btn btn-outline-danger btn-sm w-100 py-2">
+                    <a href="#" class="btn btn-outline-danger btn-sm w-100 py-2">
                       <i class="bi bi-lightbulb"></i><br>
                       Submit Idea
                     </a>
@@ -214,7 +214,7 @@
                 <p class="small">{{ announcement.content|truncatechars:100 }}</p>
                 <div class="d-flex justify-content-between">
                   <span class="small text-muted">{{ announcement.created_at|timesince }} ago</span>
-                  <a href="{% url 'view_announcement' announcement.id %}" class="small">Read More</a>
+                  <a href="#" class="small">Read More</a>
                 </div>
               </div>
               {% endfor %}
@@ -240,9 +240,9 @@
                   <i class="bi bi-clock ms-2"></i> {{ training.time|time:"H:i" }}
                 </div>
                 <div class="mt-1">
-                  <a href="{% url 'training_details' training.id %}" class="btn btn-sm btn-outline-danger">Details</a>
+                  <a href="#" class="btn btn-sm btn-outline-danger">Details</a>
                   {% if not training.registered %}
-                  <a href="{% url 'register_training' training.id %}" class="btn btn-sm btn-danger float-end">Register</a>
+                  <a href="#" class="btn btn-sm btn-danger float-end">Register</a>
                   {% else %}
                   <span class="badge bg-success float-end">Registered</span>
                   {% endif %}

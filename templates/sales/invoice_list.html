@@ -131,7 +131,7 @@
                                     </button>
                                     <ul class="dropdown-menu">
                                         <li>
-                                            <a class="dropdown-item" href="{% url 'sales_order_detail' invoice.pk %}">
+                                            <a class="dropdown-item" href="#">
                                                 <i class="fas fa-eye me-2"></i>View
                                             </a>
                                         </li>
@@ -188,13 +188,13 @@
                         {% if page_obj.has_previous %}
                         <li class="page-item">
                             <a class="page-link text-danger" 
-                               href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                               href="#">
                                 <i class="fas fa-angle-double-left"></i>
                             </a>
                         </li>
                         <li class="page-item">
                             <a class="page-link text-danger" 
-                               href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                               href="#">
                                 <i class="fas fa-angle-left"></i>
                             </a>
                         </li>
@@ -210,7 +210,7 @@
                             {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
                             <li class="page-item">
                                 <a class="page-link text-danger" 
-                                   href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                                   href="#">
                                     {{ num }}
                                 </a>
                             </li>
@@ -220,13 +220,13 @@
                         {% if page_obj.has_next %}
                         <li class="page-item">
                             <a class="page-link text-danger" 
-                               href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                               href="#">
                                 <i class="fas fa-angle-right"></i>
                             </a>
                         </li>
                         <li class="page-item">
                             <a class="page-link text-danger" 
-                               href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}">
+                               href="#">
                                 <i class="fas fa-angle-double-right"></i>
                             </a>
                         </li>

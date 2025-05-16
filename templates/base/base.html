@@ -6,7 +6,7 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>{% block title %}Almasi Bottlers Ltd - Refreshing the World{% endblock %}</title>
+  <title>{% block title %}Mediclinic management system {% endblock %}</title>
   <meta name="description" content="Welcome to Coca Cola Company - Explore our beverages, careers, innovations, and sustainability efforts.">
   <meta name="keywords" content="Coca Cola, Beverages, Soft Drinks, Company, Careers, Refresh, Soda, Sustainability">
   <meta name="author" content="Coca Cola Company">
@@ -64,16 +64,12 @@
   <body>
     {% include "base/navbar.html" %}
 
-    {% if request.user.user_type == 'admin' %}
+    {% if request.user.user_type == 'ADMIN' %}
         {% include "base/sidebars/admin_sidebar.html" %}
-    {% elif request.user.user_type == 'employee' %}
-        {% include "base/sidebars/employee_sidebar.html" %}
-    {% elif request.user.user_type == 'finance' %}
-        {% include "base/sidebars/finance_sidebar.html" %}
-    {% elif request.user.user_type == 'security' %}
-        {% include "base/sidebars/securityguard_sidebar.html" %}
+    {% elif request.user.user_type == 'DOCTOR' %}
+        {% include "base/sidebars/doctor_sidebar.html" %}
     {% else %}
-        {% include "base/sidebars/staff_sidebar.html" %}
+        {% include "base/sidebars/receptionist_sidebar.html" %}
     {% endif %}
 
 

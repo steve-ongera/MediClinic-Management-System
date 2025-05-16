@@ -1,159 +1,191 @@
 {% load static %}
-<!-- ======= Coca-Cola Admin Sidebar ======= -->
+<!-- ======= Clinic Management Sidebar ======= -->
 <aside id="sidebar" class="sidebar">
     <ul class="sidebar-nav" id="sidebar-nav">
 
         <!-- Dashboard -->
         <li class="nav-item">
-            <a class="nav-link" href="{% url 'admin_dashboard'%}">
-                <i class="bi bi-speedometer2"></i>
-                <span>Executive Dashboard</span>
+            <a class="nav-link" href="#">
+                <i class="bi bi-speedometer2" style="color: #3498db;"></i>
+                <span style="color: #2c3e50;">Clinic Dashboard</span>
             </a>
         </li>
 
-        <!-- Employee Management -->
+        <!-- Patient Management -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#hr-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-people-fill"></i>
-                <span>HR & Employees</span>
+            <a class="nav-link collapsed" data-bs-target="#patients-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-people-fill" style="color: #2980b9;"></i>
+                <span style="color: #2c3e50;">Patient Management</span>
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="hr-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li><a href="{% url 'employee_list'%}"><i class="bi bi-person-vcard"></i> Employee Records</a></li>
-                <li><a href="{% url 'attendance_list'%}"><i class="bi bi-calendar-check"></i> Attendance</a></li>
-                <li><a href="{% url 'leave_list'%}"><i class="bi bi-airplane"></i> Leave Management</a></li>
-                <li><a href="{% url 'payroll_list'%}"><i class="bi bi-cash-coin"></i> Payroll</a></li>
-                <li><a href="#"><i class="bi bi-award"></i> Performance Reviews</a></li>
-                <li><a href="#"><i class="bi bi-building-gear"></i> Departments</a></li>
+            <ul id="patients-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="#"><i class="bi bi-person-vcard" style="color: #3498db;"></i> Patient Records</a></li>
+                <li><a href="#"><i class="bi bi-person-plus" style="color: #3498db;"></i> New Registration</a></li>
+                <li><a href="#"><i class="bi bi-file-medical" style="color: #3498db;"></i> Medical History</a></li>
+                <li><a href="#"><i class="bi bi-shield-check" style="color: #3498db;"></i> Insurance Records</a></li>
             </ul>
         </li>
 
-        <!-- Product Management -->
+        <!-- Appointments -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#products-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-cup-straw"></i>
-                <span>Products</span>
+            <a class="nav-link collapsed" data-bs-target="#appointments-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-calendar-check" style="color: #2980b9;"></i>
+                <span style="color: #2c3e50;">Appointments</span>
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="products-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li><a href="{% url 'product_list'%}"><i class="bi bi-tags"></i> Product Catalog</a></li>
-                <li><a href="#"><i class="bi bi-box-seam"></i> Variants (Sizes/Flavors)</a></li>
-                <li><a href="#"><i class="bi bi-flower1"></i> Ingredients</a></li>
-                <li><a href="#"><i class="bi bi-clipboard2-check"></i> Quality Control</a></li>
-                <li><a href="{% url 'category_list'%}"><i class="bi bi-diagram-3"></i> Categories</a></li>
+            <ul id="appointments-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="#"><i class="bi bi-list-check" style="color: #3498db;"></i> Appointment Schedule</a></li>
+                <li><a href="#"><i class="bi bi-plus-circle" style="color: #3498db;"></i> Book Appointment</a></li>
+                <li><a href="#"><i class="bi bi-calendar-week" style="color: #3498db;"></i> Calendar View</a></li>
+                <li><a href="#"><i class="bi bi-hourglass" style="color: #3498db;"></i> Waiting List</a></li>
             </ul>
         </li>
 
-        <!-- Inventory & Supply Chain -->
+        <!-- Medical Services -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#inventory-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-boxes"></i>
-                <span>Inventory</span>
+            <a class="nav-link collapsed" data-bs-target="#services-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-heart-pulse" style="color: #2980b9;"></i>
+                <span style="color: #2c3e50;">Medical Services</span>
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="inventory-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li><a href="{% url 'warehouse_list'%}"><i class="bi bi-house-gear"></i> Warehouses</a></li>
-                <li><a href="{% url 'stock_movement_list'%}"><i class="bi bi-arrow-left-right"></i> Stock Movements</a></li>
-                <li><a href="{% url 'purchase_order_list'%}"><i class="bi bi-card-checklist"></i> Purchase Orders</a></li>
-                <li><a href="{% url 'supplier_list'%}"><i class="bi bi-truck"></i> Suppliers</a></li>
-                <li><a href="{% url 'low_stock_alerts'%}"><i class="bi bi-exclamation-triangle"></i> Low Stock Alerts</a></li>
+            <ul id="services-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="#"><i class="bi bi-clipboard2-pulse" style="color: #3498db;"></i> Consultations</a></li>
+                <li><a href="#"><i class="bi bi-file-earmark-medical" style="color: #3498db;"></i> Diagnoses</a></li>
+                <li><a href="#"><i class="bi bi-prescription2" style="color: #3498db;"></i> Treatments</a></li>
+                <li><a href="#"><i class="bi bi-hospital" style="color: #3498db;"></i> Procedures</a></li>
             </ul>
         </li>
 
-        <!-- Sales & Distribution -->
+        <!-- Pharmacy -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#sales-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-graph-up-arrow"></i>
-                <span>Sales</span>
+            <a class="nav-link collapsed" data-bs-target="#pharmacy-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-capsule" style="color: #2980b9;"></i>
+                <span style="color: #2c3e50;">Pharmacy</span>
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="sales-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav"> 
-                <li><a href="{% url 'sales_recording'%}"><i class="bi bi-cart-check"></i> New Sale</a></li>
-                <li><a href="{% url 'sales_order_list'%}"><i class="bi bi-cart-check"></i> Orders</a></li>
-                <li><a href="{% url 'customer_list'%}"><i class="bi bi-building"></i> Customers</a></li>
-                <li><a href="{% url 'invoice_list'%}"><i class="bi bi-receipt"></i> Invoices</a></li>
-                <li><a href="{% url 'vehicle_list'%}"><i class="bi bi-truck"></i> Deliveries</a></li>
-                <li><a href="#"><i class="bi bi-map"></i> Delivery Routes</a></li>
+            <ul id="pharmacy-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="#"><i class="bi bi-capsule" style="color: #3498db;"></i> Medicine Inventory</a></li>
+                <li><a href="#"><i class="bi bi-prescription" style="color: #3498db;"></i> Prescriptions</a></li>
+                <li><a href="#"><i class="bi bi-cash-stack" style="color: #3498db;"></i> Pharmacy Sales</a></li>
+                <li><a href="#"><i class="bi bi-exclamation-triangle" style="color: #3498db;"></i> Low Stock Alerts</a></li>
+                <li><a href="#"><i class="bi bi-tags" style="color: #3498db;"></i> Medicine Categories</a></li>
             </ul>
         </li>
 
-        <!-- Production -->
+        <!-- Billing -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#production-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-factory"></i>
-                <span>Production</span>
+            <a class="nav-link collapsed" data-bs-target="#billing-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-cash-coin" style="color: #2980b9;"></i>
+                <span style="color: #2c3e50;">Billing & Payments</span>
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="production-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li><a href="{% url 'facility_list'%}"><i class="bi bi-building-gear"></i> Facilities</a></li>
-                <li><a href="{% url 'line_list'%}"><i class="bi bi-cpu"></i> Production Lines</a></li>
-                <li><a href="{% url 'batch_list'%}"><i class="bi bi-collection"></i> Batches</a></li>
-                <li><a href="{% url 'maintenance_dashboard'%}"><i class="bi bi-tools"></i> Maintenance</a></li>
-                <li><a href="#"><i class="bi bi-clock-history"></i> Downtime Tracking</a></li>
+            <ul id="billing-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="#"><i class="bi bi-receipt" style="color: #3498db;"></i> Invoices</a></li>
+                <li><a href="#"><i class="bi bi-credit-card" style="color: #3498db;"></i> Payments</a></li>
+                <li><a href="#"><i class="bi bi-shield-check" style="color: #3498db;"></i> Insurance Claims</a></li>
+                <li><a href="#"><i class="bi bi-graph-up" style="color: #3498db;"></i> Financial Reports</a></li>
             </ul>
         </li>
 
-        <!-- Finance -->
+        <!-- Staff Management -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#finance-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-cash-stack"></i>
-                <span>Finance</span>
+            <a class="nav-link collapsed" data-bs-target="#staff-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-person-badge" style="color: #2980b9;"></i>
+                <span style="color: #2c3e50;">Staff Management</span>
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="finance-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li> <a href="{% url 'finance_dashboard'%}"><i class="bi bi-bank"></i> Finance</a></li>
-                <li><a href="{% url 'transaction_list'%}"><i class="bi bi-journal-bookmark"></i> Transactions</a></li>
-                <li><a href="#"><i class="bi bi-piggy-bank"></i> Accounts</a></li>
-                <li><a href="#"><i class="bi bi-file-earmark-bar-graph"></i> Budgets</a></li>
-                <li><a href="#"><i class="bi bi-receipt-cutoff"></i> Tax Records</a></li>
+            <ul id="staff-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="#"><i class="bi bi-person-hearts" style="color: #3498db;"></i> Doctors</a></li>
+                <li><a href="#"><i class="bi bi-person-plus" style="color: #3498db;"></i> Nurses</a></li>
+                <li><a href="#"><i class="bi bi-people" style="color: #3498db;"></i> All Staff</a></li>
+                <li><a href="#"><i class="bi bi-calendar-range" style="color: #3498db;"></i> Schedules</a></li>
             </ul>
         </li>
 
-        <!-- Marketing -->
+        <!-- Reports -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#marketing-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-megaphone"></i>
-                <span>Marketing</span>
+            <a class="nav-link collapsed" data-bs-target="#reports-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-clipboard-data" style="color: #2980b9;"></i>
+                <span style="color: #2c3e50;">Reports</span>
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="marketing-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li><a href="#"><i class="bi bi-collection-play"></i> Campaigns</a></li>
-                <li><a href="#"><i class="bi bi-tag"></i> Promo Codes</a></li>
-                <li><a href="#"><i class="bi bi-graph-up"></i> Campaign Analytics</a></li>
-                <li><a href="#"><i class="bi bi-hearts"></i> Loyalty Programs</a></li>
+            <ul id="reports-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="#"><i class="bi bi-file-earmark-medical" style="color: #3498db;"></i> Clinical Reports</a></li>
+                <li><a href="#"><i class="bi bi-building" style="color: #3498db;"></i> Operational Reports</a></li>
+                <li><a href="#"><i class="bi bi-graph-up" style="color: #3498db;"></i> Financial Reports</a></li>
+                <li><a href="#"><i class="bi bi-box-seam" style="color: #3498db;"></i> Inventory Reports</a></li>
             </ul>
         </li>
 
         <!-- System Admin -->
-        <li class="nav-heading">System Administration</li>
+        <li class="nav-heading" style="color: #2c3e50;">System Administration</li>
 
         <li class="nav-item">
             <a class="nav-link collapsed" href="#">
-                <i class="bi bi-shield-lock"></i>
-                <span>Roles & Permissions</span>
+                <i class="bi bi-shield-lock" style="color: #2980b9;"></i>
+                <span style="color: #2c3e50;">User Management</span>
             </a>
         </li>
 
         <li class="nav-item">
             <a class="nav-link collapsed" href="#">
-                <i class="bi bi-gear"></i>
-                <span>System Settings</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="{% url 'sales_dashboard'%}">
-                <i class="bi bi-graph-up"></i>
-                <span>Analytics Dashboard</span>
+                <i class="bi bi-gear" style="color: #2980b9;"></i>
+                <span style="color: #2c3e50;">Clinic Settings</span>
             </a>
         </li>
 
         <li class="nav-item">
             <a class="nav-link collapsed" href="#">
-                <i class="bi bi-box-arrow-right"></i>
-                <span>Logout</span>
+                <i class="bi bi-journal-text" style="color: #2980b9;"></i>
+                <span style="color: #2c3e50;">Audit Logs</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="#">
+                <i class="bi bi-box-arrow-right" style="color: #e74c3c;"></i>
+                <span style="color: #2c3e50;">Logout</span>
             </a>
         </li>
 
     </ul>
 </aside>
+
+<style>
+    /* Sidebar Blue Theme */
+    .sidebar {
+        background-color: #f8f9fa;
+        border-right: 1px solid #e9ecef;
+    }
+    
+    .sidebar .nav-link {
+        color: #2c3e50;
+        transition: all 0.3s;
+    }
+    
+    .sidebar .nav-link:hover {
+        color: #3498db;
+        background-color: rgba(52, 152, 219, 0.1);
+    }
+    
+    .sidebar .nav-link.active {
+        color: #3498db;
+        background-color: rgba(52, 152, 219, 0.1);
+        border-left: 3px solid #3498db;
+    }
+    
+    .sidebar .nav-content {
+        background-color: rgba(52, 152, 219, 0.05);
+    }
+    
+    .sidebar .nav-content a:hover {
+        background-color: rgba(52, 152, 219, 0.1);
+    }
+    
+    .sidebar .nav-heading {
+        color: #7f8c8d;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+</style>

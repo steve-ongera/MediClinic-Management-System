@@ -1,9 +1,9 @@
 {% extends "base/base.html" %}
 {% load static %}
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="#" rel="stylesheet">
 
-{% block title %}medical management system{% endblock %}
+{% block title %}Clinical Management System{% endblock %}
 
 {% block content %}
 <div class="message-container" id="system-messages">
@@ -19,7 +19,7 @@
     <h1>Dashboard</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'admin_dashboard'%}">Home</a></li>
+        <li class="breadcrumb-item"><a href="#">Home</a></li>
         <li class="breadcrumb-item active">Dashboard</li>
         <li class="breadcrumb-item"> {{ request.user.username }}</li>
       </ol>
@@ -31,96 +31,95 @@
       <!-- Left side columns -->
       <div class="col-lg-8">
         <div class="row">
-          <!-- Employees Card -->
+          <!-- Patients Card -->
           <div class="col-xxl-4 col-md-6">
-            <div class="card info-card sales-card" style="border-left: 5px solid #F40009;">
+            <div class="card info-card sales-card" style="border-left: 5px solid #3498db;">
               <div class="card-body">
-                <h5 class="card-title">Total Employees</h5>
+                <h5 class="card-title">Total Patients</h5>
                 <div class="d-flex align-items-center">
-                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #F40009;">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #3498db;">
                     <i class="bi bi-people text-white"></i>
                   </div>
                   <div class="ps-3">
-                    <h6>{{ total_employees }}</h6>
+                    <h6>{{ total_patients }}</h6>
                     <span class="text-success small pt-1 fw-bold"></span> 
                     <span class="text-muted small pt-2 ps-1"></span>
                   </div>
                 </div>
               </div>
             </div>
-          </div><!-- End Employees Card -->
+          </div><!-- End Patients Card -->
 
-          <!-- Active Employees Card -->
+          <!-- Doctors Card -->
           <div class="col-xxl-4 col-md-6">
-            <div class="card info-card revenue-card" style="border-left: 5px solid #4CAF50;">
+            <div class="card info-card revenue-card" style="border-left: 5px solid #2980b9;">
               <div class="card-body">
-                <h5 class="card-title">Active Employees</h5>
+                <h5 class="card-title">Doctors</h5>
                 <div class="d-flex align-items-center">
-                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #4CAF50;">
-                    <i class="bi bi-person-check text-white"></i>
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #2980b9;">
+                    <i class="bi bi-person-badge text-white"></i>
                   </div>
                   <div class="ps-3">
-                    <h6>{{ active_employees }}</h6>
+                    <h6>{{ total_doctors }}</h6>
                   </div>
                 </div>
               </div>
             </div>
-          </div><!-- End Active Employees Card -->
+          </div><!-- End Doctors Card -->
 
-          <!-- On Leave Card -->
+          <!-- Appointments Card -->
           <div class="col-xxl-4 col-md-6">
-            <div class="card info-card customers-card" style="border-left: 5px solid #FFC107;">
+            <div class="card info-card customers-card" style="border-left: 5px solid #1abc9c;">
               <div class="card-body">
-                <h5 class="card-title">On Leave</h5>
+                <h5 class="card-title">Today's Appointments</h5>
                 <div class="d-flex align-items-center">
-                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #FFC107;">
-                    <i class="bi bi-person-dash text-white"></i>
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #1abc9c;">
+                    <i class="bi bi-calendar-check text-white"></i>
                   </div>
                   <div class="ps-3">
-                    <h6>{{ on_leave }}</h6>
+                    <h6>{{ todays_appointments }}</h6>
                   </div>
                 </div>
               </div>
             </div>
-          </div><!-- End On Leave Card -->
+          </div><!-- End Appointments Card -->
 
-          <!-- Payroll Card -->
+          <!-- Revenue Card -->
           <div class="col-xxl-6 col-md-6">
-            <div class="card info-card revenue-card" style="border-left: 5px solid #2196F3;">
+            <div class="card info-card revenue-card" style="border-left: 5px solid #3498db;">
               <div class="card-body">
-                <h5 class="card-title">Monthly Payroll</h5>
+                <h5 class="card-title">Monthly Revenue</h5>
                 <div class="d-flex align-items-center">
-                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #2196F3;">
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #3498db;">
                     <i class="bi bi-cash-stack text-white"></i>
                   </div>
                   <div class="ps-3">
-                    <h6>KES{{ payroll_summary.total_payroll|floatformat:2 }}</h6>
-                    <span class="text-muted small">Avg: KES{{ payroll_summary.avg_salary|floatformat:2 }}</span>
+                    <h6>KES{{ total_revenue|floatformat:2 }}</h6>
                   </div>
                 </div>
               </div>
             </div>
-          </div><!-- End Payroll Card -->
+          </div><!-- End Revenue Card -->
 
-          <!-- Inventory Card -->
+          <!-- Medicine Stock Card -->
           <div class="col-xxl-6 col-md-6">
-            <div class="card info-card sales-card" style="border-left: 5px solid #9C27B0;">
+            <div class="card info-card sales-card" style="border-left: 5px solid #9b59b6;">
               <div class="card-body">
-                <h5 class="card-title">Inventory Status</h5>
+                <h5 class="card-title">Medicine Stock</h5>
                 <div class="d-flex align-items-center">
-                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #9C27B0;">
-                    <i class="bi bi-box-seam text-white"></i>
+                  <div class="card-icon rounded-circle d-flex align-items-center justify-content-center" style="background-color: #9b59b6;">
+                    <i class="bi bi-capsule text-white"></i>
                   </div>
                   <div class="ps-3">
-                    <h6>{{ total_products }} Products</h6>
-                    <span class="text-danger small">{{ low_stock_items }} low stock</span>
+                    <h6>{{ total_medicines }} Items</h6>
+                    <span class="text-danger small">{{ low_stock|length }} low stock</span>
                   </div>
                 </div>
               </div>
             </div>
-          </div><!-- End Inventory Card -->
+          </div><!-- End Medicine Stock Card -->
 
-          <!-- Department Distribution Chart -->
+          <!-- Common Diseases Chart -->
           <div class="col-12">
             <div class="card">
                 <div class="filter">
@@ -129,14 +128,14 @@
                         <li class="dropdown-header text-start">
                             <h6>Filter</h6>
                         </li>
-                        <li><a class="dropdown-item filter-department active" href="#" data-filter="all">All Departments</a></li>
-                        <li><a class="dropdown-item filter-department" href="#" data-filter="large">Large Departments</a></li>
+                        <li><a class="dropdown-item filter-disease active" href="#" data-filter="all">All Diseases</a></li>
+                        <li><a class="dropdown-item filter-disease" href="#" data-filter="current">Current Month</a></li>
                     </ul>
                 </div>
                 <div class="card-body">
-                    <h5 class="card-title">Employee Distribution by Department</h5>
+                    <h5 class="card-title">Common Diseases</h5>
                     <div class="chart-container" style="position: relative; height:300px; width:100%">
-                        <canvas id="departmentChart"></canvas>
+                        <canvas id="diseaseChart"></canvas>
                     </div>
                 </div>
             </div>
@@ -144,24 +143,24 @@
 
           <script>
             document.addEventListener("DOMContentLoaded", () => {
-                // Department Chart
-                const deptLabels = JSON.parse('{{ dept_labels|escapejs }}');
-                const deptData = JSON.parse('{{ dept_data|escapejs }}');
+                // Disease Chart
+                const diseaseLabels = JSON.parse('{{ disease_labels|escapejs }}');
+                const diseaseCounts = JSON.parse('{{ disease_counts|escapejs }}');
                 
-                const deptCtx = document.getElementById('departmentChart').getContext('2d');
-                const departmentChart = new Chart(deptCtx, {
-                    type: 'doughnut',
+                const diseaseCtx = document.getElementById('diseaseChart').getContext('2d');
+                const diseaseChart = new Chart(diseaseCtx, {
+                    type: 'bar',
                     data: {
-                        labels: deptLabels,
+                        labels: diseaseLabels,
                         datasets: [{
-                            data: deptData,
+                            label: 'Cases',
+                            data: diseaseCounts,
                             backgroundColor: [
-                                '#F40009', // Coca-Cola Red
-                                '#4CAF50', // Green
-                                '#2196F3', // Blue
-                                '#FFC107', // Yellow
-                                '#9C27B0', // Purple
-                                '#607D8B', // Gray
+                                '#3498db',
+                                '#2980b9',
+                                '#1abc9c',
+                                '#9b59b6',
+                                '#34495e'
                             ],
                             borderWidth: 1
                         }]
@@ -171,13 +170,22 @@
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                position: 'right',
+                                display: false
                             },
                             tooltip: {
                                 callbacks: {
                                     label: function(context) {
-                                        return `${context.label}: ${context.raw} employees`;
+                                        return `${context.label}: ${context.raw} cases`;
                                     }
+                                }
+                            }
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Cases'
                                 }
                             }
                         }
@@ -185,41 +193,24 @@
                 });
             
                 // Filter functionality
-                document.querySelectorAll('.filter-department').forEach(item => {
+                document.querySelectorAll('.filter-disease').forEach(item => {
                     item.addEventListener('click', function(e) {
                         e.preventDefault();
                         
-                        document.querySelectorAll('.filter-department').forEach(el => {
+                        document.querySelectorAll('.filter-disease').forEach(el => {
                             el.classList.remove('active');
                         });
                         this.classList.add('active');
                         
-                        const filterType = this.getAttribute('data-filter');
-                        let filteredLabels = deptLabels;
-                        let filteredData = deptData;
-                        
-                        if (filterType === 'large') {
-                            // Show only departments with more than 10 employees
-                            filteredLabels = [];
-                            filteredData = [];
-                            for (let i = 0; i < deptData.length; i++) {
-                                if (deptData[i] > 10) {
-                                    filteredLabels.push(deptLabels[i]);
-                                    filteredData.push(deptData[i]);
-                                }
-                            }
-                        }
-                        
-                        departmentChart.data.labels = filteredLabels;
-                        departmentChart.data.datasets[0].data = filteredData;
-                        departmentChart.update();
+                        // In a real implementation, you would fetch filtered data
+                        console.log(`Filtering diseases by: ${this.getAttribute('data-filter')}`);
                     });
                 });
             });
             </script>
-        <!-- End Department Chart -->
+        <!-- End Disease Chart -->
 
-          <!-- Recent Sales Orders -->
+          <!-- Recent Appointments -->
           <div class="col-12">
             <div class="card recent-sales overflow-auto">
               <div class="filter">
@@ -229,29 +220,29 @@
                     <h6>Filter</h6>
                   </li>
                   <li><a class="dropdown-item" href="#">Today</a></li>
+                  <li><a class="dropdown-item" href="#">This Week</a></li>
                   <li><a class="dropdown-item" href="#">This Month</a></li>
-                  <li><a class="dropdown-item" href="#">This Year</a></li>
                 </ul>
               </div>
               <div class="card-body">
-                <h5 class="card-title">Recent Sales Orders <span>| This Month</span></h5>
+                <h5 class="card-title">Recent Appointments <span>| Today</span></h5>
                 <table class="table table-borderless">
                   <thead>
                     <tr>
-                      <th scope="col">Order #</th>
-                      <th scope="col">Customer</th>
-                      <th scope="col">Amount</th>
+                      <th scope="col">Patient</th>
+                      <th scope="col">Doctor</th>
+                      <th scope="col">Time</th>
                       <th scope="col">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {% for order in recent_orders %}
+                    {% for appointment in recent_appointments %}
                     <tr>
-                      <td><a href="#" class="text-primary">SO-{{ order.order_number }}</a></td>
-                      <td>{{ order.customer.name }}</td>
-                      <td>ksh{{ order.total_amount }}</td>
-                      <td><span class="badge bg-{% if order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}danger{% else %}warning{% endif %}">
-                        {{ order.get_status_display }}
+                      <td>{{ appointment.patient.first_name }} {{ appointment.patient.last_name }}</td>
+                      <td>Dr. {{ appointment.doctor.last_name }}</td>
+                      <td>{{ appointment.scheduled_time|time }}</td>
+                      <td><span class="badge bg-{% if appointment.status == 'COMPLETED' %}success{% elif appointment.status == 'CANCELLED' %}danger{% else %}info{% endif %}">
+                        {{ appointment.get_status_display }}
                       </span></td>
                     </tr>
                     {% endfor %}
@@ -259,9 +250,9 @@
                 </table>
               </div>
             </div>
-          </div><!-- End Recent Sales -->
+          </div><!-- End Recent Appointments -->
 
-          <!-- Recent Purchases -->
+          <!-- Low Stock Medicines -->
           <div class="col-12">
             <div class="card top-selling overflow-auto">
               <div class="filter">
@@ -270,139 +261,40 @@
                   <li class="dropdown-header text-start">
                     <h6>Filter</h6>
                   </li>
-                  <li><a class="dropdown-item" href="#">Today</a></li>
-                  <li><a class="dropdown-item" href="#">This Month</a></li>
-                  <li><a class="dropdown-item" href="#">This Year</a></li>
+                  <li><a class="dropdown-item" href="#">Critical</a></li>
+                  <li><a class="dropdown-item" href="#">All Low Stock</a></li>
                 </ul>
               </div>
               <div class="card-body pb-0">
-                <h5 class="card-title">Recent Purchase Orders <span>| This Month</span></h5>
+                <h5 class="card-title">Low Stock Medicines <span>| Need Reorder</span></h5>
                 <table class="table table-borderless">
                   <thead>
                     <tr>
-                      <th scope="col">PO #</th>
-                      <th scope="col">Supplier</th>
-                      <th scope="col">Amount</th>
-                      <th scope="col">Status</th>
+                      <th scope="col">Medicine</th>
+                      <th scope="col">Category</th>
+                      <th scope="col">In Stock</th>
+                      <th scope="col">Reorder Level</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {% for purchase in recent_purchases %}
+                    {% for medicine in low_stock %}
                     <tr>
-                      <td><a href="#" class="text-primary">PO-{{ purchase.order_number }}</a></td>
-                      <td>{{ purchase.supplier.name }}</td>
-                      <td>ksh{{ purchase.total_amount }}</td>
-                      <td><span class="badge bg-{% if purchase.status == 'received' %}success{% elif purchase.status == 'cancelled' %}danger{% else %}warning{% endif %}">
-                        {{ purchase.get_status_display }}
-                      </span></td>
+                      <td>{{ medicine.name }}</td>
+                      <td>{{ medicine.category.name|default:"-" }}</td>
+                      <td>{{ medicine.quantity_in_stock }}</td>
+                      <td>{{ medicine.reorder_level }}</td>
                     </tr>
                     {% endfor %}
                   </tbody>
                 </table>
               </div>
             </div>
-          </div><!-- End Recent Purchases -->
+          </div><!-- End Low Stock Medicines -->
         </div>
       </div><!-- End Left side columns -->
 
       <!-- Right side columns -->
       <div class="col-lg-4">
-        <!-- Attendance Chart -->
-        <div class="card">
-          <div class="filter">
-              <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-              <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-                  <li class="dropdown-header text-start">
-                      <h6>Filter</h6>
-                  </li>
-                  <li><a class="dropdown-item filter-attendance active" href="#" data-period="30">Last 30 Days</a></li>
-                  <li><a class="dropdown-item filter-attendance" href="#" data-period="7">Last 7 Days</a></li>
-              </ul>
-          </div>
-          <div class="card-body">
-              <h5 class="card-title">Attendance Status <span>| Last 30 Days</span></h5>
-              <div class="chart-container" style="position: relative; height:300px; width:100%">
-                  <canvas id="attendanceChart"></canvas>
-              </div>
-          </div>
-      </div>
-      
-      <script>
-      document.addEventListener("DOMContentLoaded", () => {
-          // Attendance Chart
-          const attLabels = JSON.parse('{{ attendance_labels|escapejs }}');
-          const attData = JSON.parse('{{ attendance_data|escapejs }}');
-          
-          const attCtx = document.getElementById('attendanceChart').getContext('2d');
-          const attendanceChart = new Chart(attCtx, {
-              type: 'bar',
-              data: {
-                  labels: attLabels,
-                  datasets: [{
-                      label: 'Number of Days',
-                      data: attData,
-                      backgroundColor: [
-                          '#4CAF50', // Present - Green
-                          '#F40009', // Absent - Red
-                          '#FFC107', // Half Day - Yellow
-                      ],
-                      borderColor: [
-                          '#388E3C',
-                          '#D32F2F',
-                          '#FFA000',
-                      ],
-                      borderWidth: 1
-                  }]
-              },
-              options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  scales: {
-                      y: {
-                          beginAtZero: true,
-                          title: {
-                              display: true,
-                              text: 'Number of Records'
-                          }
-                      },
-                      x: {
-                          title: {
-                              display: true,
-                              text: 'Attendance Status'
-                          }
-                      }
-                  },
-                  plugins: {
-                      legend: {
-                          display: false
-                      }
-                  }
-              }
-          });
-      
-          // Filter functionality would require AJAX calls to get different time periods
-          document.querySelectorAll('.filter-attendance').forEach(item => {
-              item.addEventListener('click', function(e) {
-                  e.preventDefault();
-                  
-                  document.querySelectorAll('.filter-attendance').forEach(el => {
-                      el.classList.remove('active');
-                  });
-                  this.classList.add('active');
-                  
-                  // In a real implementation, you would make an AJAX call here
-                  // to get data for the selected period
-                  const period = this.getAttribute('data-period');
-                  document.querySelector('.card-title span').textContent = `| Last ${period} Days`;
-                  
-                  // For demo purposes, we'll just show a message
-                  console.log(`Would fetch data for last ${period} days`);
-              });
-          });
-      });
-      </script>
-        <!-- End Attendance Chart -->
-
         <!-- Sales Trend Chart -->
         <div class="card">
           <div class="filter">
@@ -421,81 +313,134 @@
                   <canvas id="salesTrendChart"></canvas>
               </div>
           </div>
-      </div>
+        </div>
       
-      <script>
-      document.addEventListener("DOMContentLoaded", () => {
-          // Sales Trend Chart
-          const salesDates = JSON.parse('{{ sales_dates|escapejs }}');
-          const salesAmounts = JSON.parse('{{ sales_amounts|escapejs }}');
-          
-          const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
-          const salesTrendChart = new Chart(salesCtx, {
-              type: 'line',
-              data: {
-                  labels: salesDates,
-                  datasets: [{
-                      label: 'Daily Sales (ksh)',
-                      data: salesAmounts,
-                      backgroundColor: 'rgba(244, 0, 9, 0.2)', // Coca-Cola Red with opacity
-                      borderColor: '#F40009', // Coca-Cola Red
-                      borderWidth: 2,
-                      tension: 0.1,
-                      fill: true
-                  }]
-              },
-              options: {
-                  responsive: true,
-                  maintainAspectRatio: false,
-                  scales: {
-                      y: {
-                          beginAtZero: false,
-                          title: {
-                              display: true,
-                              text: 'Sales Amount (ksh)'
-                          }
-                      },
-                      x: {
-                          title: {
-                              display: true,
-                              text: 'Date'
-                          }
-                      }
-                  },
-                  plugins: {
-                      tooltip: {
-                          callbacks: {
-                              label: function(context) {
-                                  return `Sales: ksh${context.raw.toFixed(2)}`;
-                              }
-                          }
-                      }
-                  }
-              }
-          });
-      
-          // Filter functionality would require AJAX calls to get different time periods
-          document.querySelectorAll('.filter-sales').forEach(item => {
-              item.addEventListener('click', function(e) {
-                  e.preventDefault();
-                  
-                  document.querySelectorAll('.filter-sales').forEach(el => {
-                      el.classList.remove('active');
-                  });
-                  this.classList.add('active');
-                  
-                  const period = this.getAttribute('data-period');
-                  document.querySelector('.card-title span').textContent = `| Last ${period} Days`;
-                  
-                  // In a real implementation, you would make an AJAX call here
-                  console.log(`Would fetch sales data for last ${period} days`);
-              });
-          });
-      });
-      </script>
+        <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Sales Trend Chart
+            const salesDates = JSON.parse('{{ sales_dates|escapejs }}');
+            const salesAmounts = JSON.parse('{{ sales_amounts|escapejs }}');
+            
+            const salesCtx = document.getElementById('salesTrendChart').getContext('2d');
+            const salesTrendChart = new Chart(salesCtx, {
+                type: 'line',
+                data: {
+                    labels: salesDates,
+                    datasets: [{
+                        label: 'Daily Sales (ksh)',
+                        data: salesAmounts,
+                        backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                        borderColor: '#3498db',
+                        borderWidth: 2,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Sales Amount (ksh)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Date'
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `Sales: ksh${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        
+            // Filter functionality
+            document.querySelectorAll('.filter-sales').forEach(item => {
+                item.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    document.querySelectorAll('.filter-sales').forEach(el => {
+                        el.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                    
+                    const period = this.getAttribute('data-period');
+                    document.querySelector('.card-title span').textContent = `| Last ${period} Days`;
+                    
+                    // In a real implementation, you would make an AJAX call here
+                    console.log(`Would fetch sales data for last ${period} days`);
+                });
+            });
+        });
+        </script>
         <!-- End Sales Trend Chart -->
 
-        <!-- Recent Deliveries -->
+        <!-- Payment Methods Chart -->
+        <div class="card">
+          <div class="card-body">
+              <h5 class="card-title">Payment Methods</h5>
+              <div class="chart-container" style="position: relative; height:300px; width:100%">
+                  <canvas id="paymentChart"></canvas>
+              </div>
+          </div>
+        </div>
+      
+        <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            // Payment Chart
+            const paymentLabels = JSON.parse('{{ payment_labels|escapejs }}');
+            const paymentTotals = JSON.parse('{{ payment_totals|escapejs }}');
+            
+            const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+            const paymentChart = new Chart(paymentCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: paymentLabels,
+                    datasets: [{
+                        data: paymentTotals,
+                        backgroundColor: [
+                            '#3498db',
+                            '#2980b9',
+                            '#1abc9c',
+                            '#9b59b6'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ksh${context.raw.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+        </script>
+        <!-- End Payment Methods Chart -->
+
+        <!-- Best Selling Medicines -->
         <div class="card">
           <div class="filter">
             <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
@@ -503,24 +448,23 @@
               <li class="dropdown-header text-start">
                 <h6>Filter</h6>
               </li>
-              <li><a class="dropdown-item" href="#">Today</a></li>
+              <li><a class="dropdown-item" href="#">This Week</a></li>
               <li><a class="dropdown-item" href="#">This Month</a></li>
               <li><a class="dropdown-item" href="#">This Year</a></li>
             </ul>
           </div>
           <div class="card-body pb-0">
-            <h5 class="card-title">Recent Deliveries <span>| This Week</span></h5>
+            <h5 class="card-title">Best Selling Medicines <span>| This Month</span></h5>
             <div class="news">
-              {% for delivery in recent_deliveries %}
+              {% for item in best_selling %}
               <div class="post-item clearfix">
                 <div class="d-flex justify-content-between">
                   <div>
-                    <h6>DEL-{{ delivery.delivery_number }}</h6>
-                    <p class="mb-0">SO-{{ delivery.sales_order.order_number }}</p>
-                    <small class="text-muted">Scheduled: {{ delivery.scheduled_date|date:"M d, Y" }}</small>
+                    <h6>{{ item.medicine__name }}</h6>
+                    <p class="mb-0">Sold: {{ item.total_sold }} units</p>
                   </div>
-                  <span class="badge bg-{% if delivery.status == 'delivered' %}success{% elif delivery.status == 'failed' %}danger{% else %}warning{% endif %}">
-                    {{ delivery.get_status_display }}
+                  <span class="badge bg-primary">
+                    #{{ forloop.counter }}
                   </span>
                 </div>
                 <hr class="my-2">
@@ -528,50 +472,85 @@
               {% endfor %}
             </div>
           </div>
-        </div><!-- End Recent Deliveries -->
+        </div><!-- End Best Selling Medicines -->
 
-        <!-- News & Updates -->
+        <!-- Recent Notifications -->
         <div class="card">
           <div class="card-body pb-0">
-            <h5 class="card-title">Coca-Cola News <span>| Today</span></h5>
+            <h5 class="card-title">Recent Notifications</h5>
             <div class="news">
               <div class="post-item clearfix">
-                <img src="{% static 'img/coca-cola-news.jpg' %}" alt="" class="img-fluid rounded">
-                <h4><a href="#">New Product Launch</a></h4>
-                <p>Coca-Cola introduces new zero-sugar variant in eco-friendly packaging...</p>
+                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                <h6><a href="#">Low Stock Alert</a></h6>
+                <p>5 medicines are below reorder level</p>
               </div>
               <div class="post-item clearfix">
-                <h4><a href="#">Sustainability Initiative</a></h4>
-                <p>Company announces new recycling program across all facilities...</p>
+                <i class="bi bi-calendar-check-fill text-info me-2"></i>
+                <h6><a href="#">New Appointments</a></h6>
+                <p>3 new appointments scheduled for today</p>
               </div>
               <div class="post-item clearfix">
-                <h4><a href="#">Quarterly Results</a></h4>
-                <p>Strong Q2 performance with 8% revenue growth in North America...</p>
+                <i class="bi bi-cash-coin text-success me-2"></i>
+                <h6><a href="#">Daily Sales Report</a></h6>
+                <p>Total sales today: KES 24,500</p>
               </div>
             </div>
           </div>
-        </div><!-- End News & Updates -->
+        </div><!-- End Recent Notifications -->
       </div><!-- End Right side columns -->
     </div>
 </section>
 
 <style>
-  /* Coca-Cola Theme Colors */
-  .card-icon[style*="background-color: #F40009;"] {
-    background-color: #F40009 !important; /* Coca-Cola Red */
+  /* Blue Theme Colors */
+  .card-icon[style*="background-color: #3498db;"] {
+    background-color: #3498db !important;
   }
   
+  .card-icon[style*="background-color: #2980b9;"] {
+    background-color: #2980b9 !important;
+  }
+  
+  .card-icon[style*="background-color: #1abc9c;"] {
+    background-color: #1abc9c !important;
+  }
+  
+  .card-icon[style*="background-color: #9b59b6;"] {
+    background-color: #9b59b6 !important;
+  }
+
   /* Hover effects for cards */
   .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(244, 0, 9, 0.1);
+    box-shadow: 0 10px 20px rgba(52, 152, 219, 0.1);
     transition: all 0.3s ease;
   }
 
-  
-  
-  
-</style>
+  /* Custom badge colors */
+  .badge.bg-primary {
+    background-color: #3498db !important;
+  }
 
+  .badge.bg-info {
+    background-color: #1abc9c !important;
+  }
+
+  /* Alert messages */
+  .alert-message {
+    border-left: 4px solid #3498db;
+  }
+
+  .alert-success {
+    border-left-color: #1abc9c;
+  }
+
+  .alert-danger {
+    border-left-color: #e74c3c;
+  }
+
+  .alert-warning {
+    border-left-color: #f39c12;
+  }
+</style>
 
 {% endblock %}

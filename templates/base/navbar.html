@@ -12,7 +12,7 @@
 
       
         <img src="{% static 'assets/img/logo2.png'%}" alt="">
-           <span class="d-none d-lg-block" style="font-family: 'Roboto', sans-serif; font-weight: 700; color: #F40009;">ALMASI  LTD.</span>
+           <span class="d-none d-lg-block" style="font-family: 'Roboto', sans-serif; font-weight: 700; color: #3498db;">MEDICLINIC ERP.</span>
       </a>
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
@@ -56,7 +56,7 @@
                     
                 {% else %}
                     <!-- Include the message link if the news does not belong to the logged-in user -->
-                    <a href="{% url 'create_chat' news.created_by.username %}" class="text-primary">
+                    <a href="#" class="text-primary">
                         <i class="bi bi-envelope"></i>
                     </a>
                     
@@ -107,7 +107,7 @@
             {% for message in messages %}
                 <li class="message-item">
                     {% if message.sender and message.sender.username %}
-                        <a href="{% url 'create_chat' message.sender.username %}">
+                        <a href="#">
                           {% if message.sender.profile.profile_pic %}
                             <img src="{{ message.sender.profile.profile_pic.url }}" alt="{{ message.sender.username }}" class="rounded-circle">
                           {% else %}

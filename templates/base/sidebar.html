@@ -5,7 +5,7 @@
     <ul class="sidebar-nav" id="sidebar-nav">
 
       <li class="nav-item">
-        <a class="nav-link " href="{% url 'admin_dashboard'%}">
+        <a class="nav-link " href="#">
           <i class="bi bi-grid"></i>
           <span>Dashboard</span>
         </a>
@@ -24,12 +24,12 @@
             </a>
             <ul id="doctors-subnav" class="nav-content collapse">
               <li>
-                <a href="{% url 'teacher_list' %}">
+                <a href="#">
                   <i class="bi bi-circle"></i><span>Teachers List</span>
                 </a>
               </li>
               <li>
-                <a href="{% url 'teacher_create' %}">
+                <a href="#">
                   <i class="bi bi-circle"></i><span>Add Teachers</span>
                 </a>
               </li>
@@ -44,12 +44,12 @@
             </a>
             <ul id="interns-subnav" class="nav-content collapse">
               <li>
-                <a href="{% url 'staff_list' %}">
+                <a href="#">
                   <i class="bi bi-circle"></i><span>Staff List</span>
                 </a>
               </li>
               <li>
-                <a href="{% url 'create_staff' %}">
+                <a href="#">
                   <i class="bi bi-circle"></i><span>Add Staff</span>
                 </a>
               </li>
@@ -64,12 +64,12 @@
             </a>
             <ul id="staff-subnav" class="nav-content collapse">
               <li>
-                <a href="{% url 'nonstaff_list'%}">
+                <a href="#">
                   <i class="bi bi-circle"></i><span>Non-Staff List</span>
                 </a>
               </li>
               <li>
-                <a href="{% url 'create_nonstaff'%}">
+                <a href="#">
                   <i class="bi bi-circle"></i><span>Add Non-staff</span>
                 </a>
               </li>
@@ -85,12 +85,12 @@
             </a>
             <ul id="nonstaff-subnav" class="nav-content collapse">
               <li>
-                <a href="{% url 'intern_list' %}">
+                <a href="#">
                   <i class="bi bi-circle"></i><span>Interns</span>
                 </a>
               </li>
               <li>
-                <a href="{% url 'create_intern' %}">
+                <a href="#">
                   <i class="bi bi-circle"></i><span>Add Intern</span>
                 </a>
               </li>
@@ -107,20 +107,20 @@
         </a>
         <ul id="forms-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
           <li>
-            <a href="{% url 'database_students_list'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Student Records</span>
             </a>
           </li>
 
           <li>
-            <a href="{% url 'search_student'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Search Student</span>
             </a>
           </li>
 
 
           <li>
-            <a href="{% url 'student_create'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Add Student</span>
             </a>
           </li>
@@ -135,25 +135,25 @@
         </a>
         <ul id="tables-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
           <li>
-            <a href="{% url 'class_lists'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Streams </span>
             </a>
           </li>
 
           <li>
-            <a href="{% url 'timetable_list'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Timetable </span>
             </a>
           </li>
 
           <li>
-            <a href="{% url 'resources_list'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Resources</span>
             </a>
           </li>
 
           <li>
-            <a href="{% url 'assignment_list'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Assignments</span>
             </a>
           </li>
@@ -169,12 +169,12 @@
         </a>
         <ul id="charts-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
           <li>
-            <a href="{% url 'term_lists'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Terms List</span>
             </a>
           </li>
           <li>
-            <a href="{% url 'term_create'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Add Term</span>
             </a>
           </li>
@@ -191,7 +191,7 @@
         </a>
         <ul id="icons-nav" class="nav-content collapse " data-bs-parent="#sidebar-nav">
           <li>
-            <a href="{% url 'student_rankings'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Student Ranking</span>
             </a>
           </li>
@@ -199,31 +199,31 @@
           
 
           <li>
-            <a href="{% url 'form_rankings'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Form Ranking</span>
             </a>
           </li>
 
           <li>
-            <a href="{% url 'stream_performance'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>stream performance</span>
             </a>
           </li>
 
           <li>
-            <a href="{% url 'subject_performance'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>subject performance</span>
             </a>
           </li>
 
           <li>
-            <a href="{% url 'cat_list'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>CAT Records</span>
             </a>
           </li>
           
           <li>
-            <a href="{% url 'cat_create'%}">
+            <a href="#">
               <i class="bi bi-circle"></i><span>Add Marks</span>
             </a>
           </li>
@@ -240,7 +240,7 @@
       <li class="nav-heading">Pages</li>
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'profile_detail'%}">
+        <a class="nav-link collapsed" href="#">
           <i class="bi bi-person"></i>
           <span>Profile</span>
         </a>
@@ -254,14 +254,14 @@
 
           <!--Dashboard-->
           <li class="nav-item">
-            <a class="nav-link collapsed" href="{% url 'population-graph'%}">
+            <a class="nav-link collapsed" href="#">
               <i class="bi bi-card-list"></i>
               <span>Population Graphs </span>
             </a>
           </li><!-- End population -->
 
           <li class="nav-item">
-            <a class="nav-link collapsed" href="{% url 'class-distribution'%}">
+            <a class="nav-link collapsed" href="#">
               <i class="bi bi-card-list"></i>
               <span>class-distribution</span>
             </a>
@@ -270,7 +270,7 @@
           
 
           <li class="nav-item">
-            <a class="nav-link collapsed" href="{% url 'student_results'%}">
+            <a class="nav-link collapsed" href="#">
               <i class="bi bi-card-list"></i>
               <span>student results</span>
             </a>
@@ -285,35 +285,35 @@
 
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'search_student'%}">
+        <a class="nav-link collapsed" href="#">
           <i class="bi bi-card-list"></i>
           <span>Search Student</span>
         </a>
       </li><!-- End Register Page Nav -->
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'register'%}">
+        <a class="nav-link collapsed" href="#">
           <i class="bi bi-card-list"></i>
           <span>Register</span>
         </a>
       </li><!-- End Register Page Nav -->
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'login'%}">
+        <a class="nav-link collapsed" href="#">
           <i class="bi bi-box-arrow-in-right"></i>
           <span>Login</span>
         </a>
       </li><!-- End Login Page Nav -->
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'system_settings'%}">
+        <a class="nav-link collapsed" href="#">
           <i class="bi bi-dash-circle"></i>
           <span> System Settings</span>
         </a>
       </li><!-- End Error 404 Page Nav -->
 
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'help_and_support'%}">
+        <a class="nav-link collapsed" href="#">
           <i class="bi bi-file-earmark"></i>
           <span>Help & Support</span>
         </a>

@@ -1,7 +1,7 @@
 {% extends "base/base.html" %}
 {% load static %}
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+<link href="#" rel="stylesheet">
 
 {% block title %}Coca-Cola Employee Dashboard{% endblock %}
 
@@ -19,7 +19,7 @@
     <h1>Employee Dashboard</h1>
     <nav>
       <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{% url 'employee_dashboard' %}">Home</a></li>
+        <li class="breadcrumb-item"><a href="#">Home</a></li>
         <li class="breadcrumb-item active">Dashboard</li>
         <li class="breadcrumb-item">{{ request.user.get_full_name }}</li>
       </ol>

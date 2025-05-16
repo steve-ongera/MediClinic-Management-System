@@ -9,7 +9,7 @@ from django.contrib.auth import logout
 
 
 def login_view(request):
-    template_name = 'accounts/login.html'
+    template_name = 'auth/login.html'
     
     # Handle GET request
     if request.method == 'GET':

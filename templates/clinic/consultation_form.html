@@ -4,55 +4,125 @@
 {% block title %}New Consultation{% endblock %}
 
 {% block extra_css %}
-<!-- Select2 for better dropdowns -->
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-<!-- Custom CSS -->
+<link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css" rel="stylesheet" />
+
 <style>
-    .patient-info {
-        background-color: #f8f9fa;
-        border-radius: 5px;
-        padding: 15px;
-        margin-bottom: 20px;
+    /* Clinic Blue Theme */
+    :root {
+        --clinic-primary: #1a6fbf;
+        --clinic-secondary: #0d4e8a;
+        --clinic-light: #e6f2ff;
+        --clinic-accent: #4da6ff;
+        --clinic-success: #28a745;
     }
-    .patient-detail {
-        margin-bottom: 5px;
+    
+    .bg-clinic-primary {
+        background-color: var(--clinic-primary);
     }
+    
+    .text-clinic-primary {
+        color: var(--clinic-primary);
+    }
+    
+    .btn-clinic-primary {
+        background-color: var(--clinic-primary);
+        color: white;
+        border-color: var(--clinic-primary);
+    }
+    
+    .btn-clinic-primary:hover {
+        background-color: var(--clinic-secondary);
+        color: white;
+        border-color: var(--clinic-secondary);
+    }
+    
+    .patient-card {
+        border-left: 4px solid var(--clinic-primary);
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    
+    .patient-card:hover {
+        background-color: var(--clinic-light);
+        transform: translateY(-2px);
+    }
+    
     .form-section {
-        background-color: #fff;
-        border-radius: 5px;
-        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-        padding: 20px;
-        margin-bottom: 20px;
+        background: white;
+        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 25px;
+        box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        border: 1px solid #e0e6ed;
     }
-    .form-section h3 {
-        border-bottom: 1px solid #e3e6f0;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-    }
+    
     .section-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #eee;
     }
-    .prescription-item {
-        border: 1px solid #e3e6f0;
-        border-radius: 5px;
-        padding: 15px;
-        margin-bottom: 15px;
-    }
-    .delete-prescription {
-        color: #e74a3b;
-        cursor: pointer;
-    }
-    #add-prescription {
-        margin-top: 10px;
-    }
-    .hidden {
-        display: none;
-    }
+    
     .loading {
         text-align: center;
         padding: 20px;
+    }
+    
+    .patient-info {
+        background-color: var(--clinic-light);
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        border: 1px solid rgba(26, 111, 191, 0.2);
+    }
+    
+    .patient-detail {
+        margin-bottom: 10px;
+        font-size: 0.95rem;
+    }
+    
+    .select2-container--bootstrap4 .select2-selection--single,
+    .select2-container--bootstrap4 .select2-selection--multiple {
+        height: calc(1.5em + 0.75rem + 2px);
+        padding: 0.375rem 0.75rem;
+        border: 1px solid #ced4da;
+    }
+    
+    .select2-container--bootstrap4 .select2-selection--single:focus,
+    .select2-container--bootstrap4 .select2-selection--multiple:focus {
+        border-color: var(--clinic-accent);
+        box-shadow: 0 0 0 0.2rem rgba(26, 111, 191, 0.25);
+    }
+    
+    .prescription-item {
+        background: #f9f9f9;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+        border-left: 3px solid var(--clinic-primary);
+    }
+    
+    #patient-select {
+        display: none;
+    }
+    
+    #empty-prescription-template {
+        display: none;
+    }
+    
+    /* Fix for hidden required fields */
+    [required][style*="display: none"] {
+        display: block !important;
+        height: 0;
+        width: 0;
+        padding: 0;
+        margin: 0;
+        border: 0;
+        opacity: 0;
+        position: absolute;
     }
 </style>
 {% endblock %}
@@ -86,31 +156,59 @@
         <div class="row">
             <div class="col-12">
                 <div class="form-section">
-                    <h3>Patient Search</h3>
-                    <div class="form-group">
-                        {{ patient_search_form.search_query }}
+                    <div class="section-header">
+                        <h3 class="text-clinic-primary mb-0">Patient Search</h3>
                     </div>
-                    <div id="loading-indicator" class="loading hidden">
-                        <div class="spinner-border text-primary" role="status">
+                    
+                    <div class="form-group">
+                        <label for="patient-search">Search Patient</label>
+                        <div class="input-group">
+                            <input type="text" 
+                                   class="form-control" 
+                                   id="patient-search" 
+                                   placeholder="Search by name, ID or phone number..."
+                                   autocomplete="off">
+                            <div class="input-group-append">
+                                <button class="btn btn-outline-secondary" type="button" id="clear-search">
+                                    <i class="fas fa-times"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                        <small class="form-text text-muted">Start typing to search for patients (minimum 2 characters)</small>
+                    </div>
+                    
+                    <div id="loading-indicator" class="loading" style="display: none;">
+                        <div class="spinner-border text-clinic-primary" role="status">
                             <span class="sr-only">Loading...</span>
                         </div>
+                        <p class="mt-2 mb-0">Searching patients...</p>
                     </div>
+                    
                     <div id="patient-results" class="mt-3"></div>
                     
-                    <!-- Patient info will be displayed here after selection -->
-                    <div id="selected-patient-info" class="patient-info hidden">
-                        <h4>Patient Information</h4>
+                    <!-- Selected Patient Info -->
+                    <div id="selected-patient-info" class="patient-info" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h4 class="mb-0 text-clinic-primary">
+                                <i class="fas fa-user-circle"></i> Selected Patient
+                            </h4>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" id="change-patient">
+                                <i class="fas fa-exchange-alt"></i> Change Patient
+                            </button>
+                        </div>
                         <div class="row">
                             <div class="col-md-6">
-                                <p class="patient-detail"><strong>Name:</strong> <span id="patient-name"></span></p>
-                                <p class="patient-detail"><strong>ID Number:</strong> <span id="patient-id-number"></span></p>
-                                <p class="patient-detail"><strong>Date of Birth:</strong> <span id="patient-dob"></span></p>
+                                <p class="patient-detail"><strong><i class="fas fa-user"></i> Name:</strong> <span id="patient-name"></span></p>
+                                <p class="patient-detail"><strong><i class="fas fa-id-card"></i> ID Number:</strong> <span id="patient-id-number"></span></p>
+                                <p class="patient-detail"><strong><i class="fas fa-birthday-cake"></i> Date of Birth:</strong> <span id="patient-dob"></span></p>
                             </div>
                             <div class="col-md-6">
-                                <p class="patient-detail"><strong>Gender:</strong> <span id="patient-gender"></span></p>
-                                <p class="patient-detail"><strong>Phone:</strong> <span id="patient-phone"></span></p>
+                                <p class="patient-detail"><strong><i class="fas fa-venus-mars"></i> Gender:</strong> <span id="patient-gender"></span></p>
+                                <p class="patient-detail"><strong><i class="fas fa-phone"></i> Phone:</strong> <span id="patient-phone"></span></p>
                             </div>
                         </div>
+                        <!-- Hidden patient field -->
+                        {{ appointment_form.patient }}
                     </div>
                 </div>
             </div>
@@ -120,14 +218,11 @@
         <div class="row">
             <div class="col-12">
                 <div class="form-section">
-                    <h3>Appointment Details</h3>
+                    <div class="section-header">
+                        <h3 class="text-clinic-primary mb-0">Appointment Details</h3>
+                    </div>
                     <div class="row">
                         <div class="col-md-6">
-                            <!-- Hidden patient field - will be set by JavaScript -->
-                            <div class="hidden">
-                                {{ appointment_form.patient }}
-                            </div>
-                            
                             <div class="form-group">
                                 <label for="{{ appointment_form.doctor.id_for_label }}">Doctor</label>
                                 {{ appointment_form.doctor }}
@@ -182,7 +277,9 @@
         <div class="row">
             <div class="col-12">
                 <div class="form-section">
-                    <h3>Consultation</h3>
+                    <div class="section-header">
+                        <h3 class="text-clinic-primary mb-0">Consultation</h3>
+                    </div>
                     <div class="row">
                         <div class="col-md-12">
                             <div class="form-group">
@@ -253,8 +350,8 @@
             <div class="col-12">
                 <div class="form-section">
                     <div class="section-header">
-                        <h3>Prescriptions</h3>
-                        <button type="button" class="btn btn-sm btn-primary" id="add-prescription">
+                        <h3 class="text-clinic-primary mb-0">Prescriptions</h3>
+                        <button type="button" class="btn btn-sm btn-clinic-primary" id="add-prescription">
                             <i class="fas fa-plus"></i> Add Prescription
                         </button>
                     </div>
@@ -304,10 +401,10 @@
                                         {{ hidden }}
                                     {% endfor %}
                                 </div>
-                                <div class="col-1 text-right">
-                                    <a href="#" class="delete-prescription">
+                                <div class="col-1 text-right pt-3">
+                                    <button type="button" class="btn btn-sm btn-outline-danger delete-prescription">
                                         <i class="fas fa-trash-alt"></i>
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -358,11 +455,12 @@
                                         </div>
                                     </div>
                                     <input type="hidden" name="prescriptions-__prefix__-id" id="id_prescriptions-__prefix__-id">
+                                    <input type="hidden" name="prescriptions-__prefix__-DELETE" id="id_prescriptions-__prefix__-DELETE">
                                 </div>
-                                <div class="col-1 text-right">
-                                    <a href="#" class="delete-prescription">
+                                <div class="col-1 text-right pt-3">
+                                    <button type="button" class="btn btn-sm btn-outline-danger delete-prescription">
                                         <i class="fas fa-trash-alt"></i>
-                                    </a>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -374,31 +472,35 @@
         <!-- Submit Button -->
         <div class="row mb-5">
             <div class="col-12 text-center">
-                <button type="submit" class="btn btn-lg btn-success">
+                <button type="submit" class="btn btn-lg btn-clinic-primary px-5">
                     <i class="fas fa-save"></i> Save Consultation
                 </button>
             </div>
         </div>
     </form>
 </div>
-{% endblock %}
-
-{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <!-- Select2 for better dropdowns -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
     $(document).ready(function() {
         // Initialize Select2 for dropdowns
-        $('.select2').select2();
+        $('.select2').select2({
+            theme: 'bootstrap4',
+            width: '100%'
+        });
         
         // Patient search functionality
         let searchTimeout;
-        $('#patient-search').on('keyup', function() {
+        const patientSearch = $('#patient-search');
+        
+        patientSearch.on('keyup', function() {
             clearTimeout(searchTimeout);
-            const query = $(this).val();
+            const query = $(this).val().trim();
             
-            if (query.length >= 3) {
-                $('#loading-indicator').removeClass('hidden');
+            if (query.length >= 2) {
+                $('#loading-indicator').show();
+                $('#patient-results').empty();
                 
                 searchTimeout = setTimeout(function() {
                     $.ajax({
@@ -408,18 +510,38 @@
                         },
                         dataType: 'json',
                         success: function(data) {
-                            $('#loading-indicator').addClass('hidden');
-                            displayPatientResults(data.results);
+                            $('#loading-indicator').hide();
+                            if (data.results && data.results.length > 0) {
+                                displayPatientResults(data.results);
+                            } else {
+                                $('#patient-results').html(`
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle"></i> No patients found matching "${query}"
+                                    </div>
+                                `);
+                            }
                         },
-                        error: function() {
-                            $('#loading-indicator').addClass('hidden');
-                            $('#patient-results').html('<div class="alert alert-danger">Error searching for patients</div>');
+                        error: function(xhr, status, error) {
+                            $('#loading-indicator').hide();
+                            $('#patient-results').html(`
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-triangle"></i> 
+                                    Error searching patients. Please try again.
+                                </div>
+                            `);
+                            console.error('Patient search error:', error);
                         }
                     });
-                }, 300);
+                }, 350);  // Debounce time
             } else {
                 $('#patient-results').empty();
             }
+        });
+        
+        // Clear search
+        $('#clear-search').click(function() {
+            patientSearch.val('').trigger('focus');
+            $('#patient-results').empty();
         });
         
         // Display patient search results
@@ -427,23 +549,35 @@
             const resultsDiv = $('#patient-results');
             resultsDiv.empty();
             
-            if (results.length === 0) {
-                resultsDiv.html('<div class="alert alert-info">No patients found</div>');
-                return;
-            }
-            
             const list = $('<div class="list-group"></div>');
+            
             results.forEach(function(patient) {
-                const item = $(
-                    `<a href="#" class="list-group-item list-group-item-action patient-result" 
-                      data-id="${patient.id}" 
-                      data-name="${patient.text}" 
-                      data-dob="${patient.dob}" 
-                      data-gender="${patient.gender}" 
-                      data-phone="${patient.phone}">
-                      ${patient.text}
-                    </a>`
-                );
+                // Extract ID number from the text if needed
+                const idNumber = patient.text.match(/ID: ([^)]+)/)?.[1] || 'N/A';
+                
+                const item = $(`
+                    <div class="list-group-item patient-card">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">${patient.text.split(' (ID:')[0]}</h6>
+                                <small class="text-muted">
+                                    <i class="fas fa-id-card"></i> ${idNumber} | 
+                                    <i class="fas fa-birthday-cake"></i> ${patient.dob} | 
+                                    <i class="fas fa-phone"></i> ${patient.phone || 'N/A'}
+                                </small>
+                            </div>
+                            <button class="btn btn-sm btn-clinic-primary select-patient" 
+                                    data-patient-id="${patient.id}"
+                                    data-patient-name="${patient.text.split(' (ID:')[0]}"
+                                    data-patient-idnumber="${idNumber}"
+                                    data-patient-dob="${patient.dob}"
+                                    data-patient-gender="${patient.gender}"
+                                    data-patient-phone="${patient.phone || 'N/A'}">
+                                <i class="fas fa-check"></i> Select
+                            </button>
+                        </div>
+                    </div>
+                `);
                 list.append(item);
             });
             
@@ -451,33 +585,42 @@
         }
         
         // Handle patient selection
-        $(document).on('click', '.patient-result', function(e) {
-            e.preventDefault();
+        $(document).on('click', '.select-patient', function() {
+            const patientId = $(this).data('patient-id');
+            const patientName = $(this).data('patient-name');
+            const idNumber = $(this).data('patient-idnumber');
+            const dob = $(this).data('patient-dob');
+            const gender = $(this).data('patient-gender');
+            const phone = $(this).data('patient-phone');
             
-            const patientId = $(this).data('id');
-            const patientName = $(this).data('name');
-            const patientDob = $(this).data('dob');
-            const patientGender = $(this).data('gender');
-            const patientPhone = $(this).data('phone');
-            
-            // Set the patient ID in the hidden form field
+            // Set the patient ID in the form field
             $('#id_patient').val(patientId);
             
             // Display patient info
             $('#patient-name').text(patientName);
-            $('#patient-id-number').text(patientName.split('ID: ')[1].replace(')', ''));
-            $('#patient-dob').text(patientDob);
-            $('#patient-gender').text(patientGender);
-            $('#patient-phone').text(patientPhone);
+            $('#patient-id-number').text(idNumber);
+            $('#patient-dob').text(dob);
+            $('#patient-gender').text(gender);
+            $('#patient-phone').text(phone);
             
             // Show the patient info section
-            $('#selected-patient-info').removeClass('hidden');
+            $('#selected-patient-info').show();
             
             // Clear the search results
             $('#patient-results').empty();
-            $('#patient-search').val('');
+            patientSearch.val('');
+            
+            // Focus on the next field for better UX
+            $('#id_doctor').select2('open');
         });
         
+        // Change patient button
+        $('#change-patient').click(function() {
+            $('#selected-patient-info').hide();
+            $('#id_patient').val('');
+            patientSearch.val('').trigger('focus');
+        });
+
         // Handle adding new prescriptions
         let prescriptionFormCount = {{ prescription_formset.total_form_count }};
         const maxNumForms = {{ prescription_formset.max_num }};
@@ -490,10 +633,16 @@
                 const newForm = template.replace(/__prefix__/g, prescriptionFormCount);
                 $('#prescription-container').append(newForm);
                 
+                // Initialize Select2 for the new medicine field
+                $('#id_prescriptions-' + prescriptionFormCount + '-medicine').select2({
+                    theme: 'bootstrap4',
+                    width: '100%'
+                });
+                
                 // Update form count
                 $('#id_prescriptions-TOTAL_FORMS').val(++prescriptionFormCount);
             } else {
-                alert('Maximum number of prescriptions reached');
+                showAlert('warning', 'Maximum number of prescriptions reached (' + maxNumForms + ')');
             }
         });
         
@@ -512,6 +661,39 @@
                 // If this is an existing form, mark it for deletion
                 prescriptionItem.find('input[name$="-DELETE"]').val('on');
                 prescriptionItem.hide();
+            }
+        });
+        
+        // Show alert message
+        function showAlert(type, message) {
+            const alert = $(`
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            `);
+            $('#consultation-form').prepend(alert);
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(function() {
+                alert.alert('close');
+            }, 5000);
+        }
+        
+        // Form submission handling
+        $('#consultation-form').on('submit', function(e) {
+            if ($('#id_patient').val() === '') {
+                e.preventDefault();
+                showAlert('danger', 'Please select a patient before submitting');
+                
+                // Scroll to patient section and highlight it
+                $('html, body').animate({
+                    scrollTop: $('#patient-search').offset().top - 20
+                }, 300);
+                
+                return false;
             }
         });
     });

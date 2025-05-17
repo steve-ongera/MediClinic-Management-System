@@ -73,6 +73,7 @@ class AppointmentForm(forms.ModelForm):
         super(AppointmentForm, self).__init__(*args, **kwargs)
         # Filter doctors only
         self.fields['doctor'].queryset = User.objects.filter(user_type='DOCTOR')
+        self.fields['patient'].required = False  # Add this line
 
 class ConsultationForm(forms.ModelForm):
     diseases = forms.ModelMultipleChoiceField(

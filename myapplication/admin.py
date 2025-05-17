@@ -59,10 +59,10 @@ class MedicineAdmin(admin.ModelAdmin):
     list_filter = ('category', 'manufacturer')
     search_fields = ('name', 'description', 'batch_number')
     date_hierarchy = 'created_at'
-    readonly_fields = ('is_low_stock',)
+    readonly_fields = ('is_low_stock',)#'image'
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'category', 'description')
+            'fields': ('name', 'image','category', 'description')
         }),
         ('Stock Information', {
             'fields': ('quantity_in_stock', 'unit_price', 'reorder_level', 'is_low_stock')

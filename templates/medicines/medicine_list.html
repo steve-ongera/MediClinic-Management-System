@@ -1,0 +1,362 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Medicine Inventory - Clinic Management System{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="d-inline-block mb-0" style="color: #1a73e8;">
+                        <i class="fas fa-pills me-2"></i>Medicine Inventory
+                    </h2>
+                    <nav aria-label="breadcrumb" class="d-none d-md-inline-block">
+                        <ol class="breadcrumb">
+                            <li class="breadcrumb-item"><a href="#">Dashboard</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Inventory</li>
+                        </ol>
+                    </nav>
+                </div>
+                <div>
+                    <a href="{% url 'medicine-create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Add New Medicine
+                    </a>
+                </div>
+            </div>
+            <hr class="mt-3 mb-1" style="border-color: #1a73e8; opacity: 0.2;">
+        </div>
+    </div>
+
+    <!-- Inventory Cards -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0 fw-bold" style="color: #1a73e8;">
+                            <i class="fas fa-capsules me-2"></i>All Medicines
+                        </h5>
+                        <div class="input-group" style="max-width: 300px;">
+                            <input type="text" class="form-control" placeholder="Search medicines..." id="medicineSearch">
+                            <button class="btn btn-outline-primary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if medicines %}
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 row-cols-xl-4 g-4">
+                        {% for medicine in medicines %}
+                        <div class="col">
+                            <div class="card h-100 border-0 shadow-sm medicine-card">
+                                <div class="card-img-top text-center p-3" style="height: 180px; background-color: #f8f9fa;">
+                                    {% if medicine.image %}
+                                    <img src="{{ medicine.image.url }}" alt="{{ medicine.name }}" class="img-fluid h-100" style="object-fit: contain;">
+                                    {% else %}
+                                    <div class="d-flex align-items-center justify-content-center h-100">
+                                        <i class="fas fa-pills fa-4x text-muted"></i>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    <h5 class="card-title mb-1">{{ medicine.name }}</h5>
+                                    <p class="text-muted small mb-2">
+                                        {% if medicine.category %}
+                                        {{ medicine.category.name }}
+                                        {% else %}
+                                        No category
+                                        {% endif %}
+                                    </p>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge {% if medicine.is_low_stock %}bg-danger{% else %}bg-success{% endif %}">
+                                            {{ medicine.quantity_in_stock }} in stock
+                                        </span>
+                                        <span class="text-primary fw-bold">
+                                            KSh {{ medicine.unit_price }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between">
+                                        <button class="btn btn-sm btn-outline-primary view-medicine" 
+                                                data-id="{{ medicine.id }}"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#medicineDetailModal">
+                                            <i class="fas fa-eye me-1"></i> Details
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary edit-medicine" 
+                                                data-id="{{ medicine.id }}"
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#editMedicineModal">
+                                            <i class="fas fa-edit me-1"></i> Edit
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-pills fa-4x text-muted mb-3"></i>
+                        <h5 class="text-muted">No medicines found in inventory</h5>
+                        <p class="text-muted">Add your first medicine to get started</p>
+                        <a href="{% url 'medicine-create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Add Medicine
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Pagination -->
+                {% if is_paginated %}
+                <div class="card-footer bg-white">
+                    <nav aria-label="Medicine pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if page_obj.has_previous %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page=1" aria-label="First">
+                                    <span aria-hidden="true">&laquo;&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                <li class="page-item active">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if page_obj.has_next %}
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item">
+                                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                                    <span aria-hidden="true">&raquo;&raquo;</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Medicine Detail Modal -->
+<div class="modal fade" id="medicineDetailModal" tabindex="-1" aria-labelledby="medicineDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #1a73e8; color: white;">
+                <h5 class="modal-title" id="medicineDetailModalLabel">Medicine Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-4 text-center">
+                        <div class="mb-3" id="medicineImageContainer" style="height: 200px; background-color: #f8f9fa; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-pills fa-5x text-muted" id="medicineDefaultIcon"></i>
+                            <img src="" alt="Medicine Image" class="img-fluid h-100" id="medicineDetailImage" style="display: none; object-fit: contain;">
+                        </div>
+                        <h4 id="medicineDetailName">Loading...</h4>
+                        <div class="badge bg-primary bg-opacity-10 text-primary mb-3" id="medicineDetailCategory">...</div>
+                        <hr>
+                        <div class="text-start">
+                            <p><strong><i class="fas fa-industry me-2" style="color: #1a73e8;"></i> Manufacturer:</strong> <span id="medicineDetailManufacturer">...</span></p>
+                            <p><strong><i class="fas fa-barcode me-2" style="color: #1a73e8;"></i> Batch Number:</strong> <span id="medicineDetailBatch">...</span></p>
+                            <p><strong><i class="fas fa-calendar-times me-2" style="color: #1a73e8;"></i> Expiry Date:</strong> <span id="medicineDetailExpiry">...</span></p>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="card mb-3 border-primary border-opacity-25">
+                            <div class="card-header bg-primary bg-opacity-10">
+                                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Basic Information</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <p><strong>Stock Quantity:</strong> <span id="medicineDetailQuantity" class="fw-bold">...</span></p>
+                                        <p><strong>Reorder Level:</strong> <span id="medicineDetailReorder">...</span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p><strong>Unit Price:</strong> <span id="medicineDetailPrice" class="fw-bold">...</span></p>
+                                        <p><strong>Last Updated:</strong> <span id="medicineDetailUpdated">...</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="card mb-3 border-primary border-opacity-25">
+                            <div class="card-header bg-primary bg-opacity-10">
+                                <h6 class="mb-0"><i class="fas fa-align-left me-2"></i>Description</h6>
+                            </div>
+                            <div class="card-body">
+                                <div id="medicineDetailDescription">No description available</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary edit-from-detail" data-id="">
+                    <i class="fas fa-edit me-2"></i>Edit Medicine
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Custom styling for medicine cards */
+    .medicine-card {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+        border-radius: 0.5rem;
+    }
+    
+    .medicine-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 0.5rem 1rem rgba(26, 115, 232, 0.15);
+    }
+    
+    .card-img-top {
+        border-top-left-radius: 0.5rem !important;
+        border-top-right-radius: 0.5rem !important;
+    }
+    
+    /* Stock status indicators */
+    .bg-danger {
+        background-color: #dc3545 !important;
+    }
+    
+    .bg-success {
+        background-color: #28a745 !important;
+    }
+    
+    /* Pagination styling */
+    .page-item.active .page-link {
+        background-color: #1a73e8;
+        border-color: #1a73e8;
+    }
+    
+    .page-link {
+        color: #1a73e8;
+    }
+    
+    /* Search box styling */
+    #medicineSearch:focus {
+        border-color: #1a73e8;
+        box-shadow: 0 0 0 0.25rem rgba(26, 115, 232, 0.25);
+    }
+</style>
+
+<script>
+    // JavaScript to handle medicine detail viewing
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle view medicine buttons
+        document.querySelectorAll('.view-medicine').forEach(button => {
+            button.addEventListener('click', function() {
+                const medicineId = this.getAttribute('data-id');
+                fetchMedicineDetails(medicineId);
+            });
+        });
+        
+        // Handle edit from detail button
+        document.querySelector('.edit-from-detail').addEventListener('click', function() {
+            const medicineId = this.getAttribute('data-id');
+            // You would typically redirect to the edit page or open edit modal
+            console.log('Edit medicine with ID:', medicineId);
+        });
+        
+        // Simple search functionality
+        document.getElementById('medicineSearch').addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            document.querySelectorAll('.medicine-card').forEach(card => {
+                const medicineName = card.querySelector('.card-title').textContent.toLowerCase();
+                if (medicineName.includes(searchTerm)) {
+                    card.parentElement.style.display = 'block';
+                } else {
+                    card.parentElement.style.display = 'none';
+                }
+            });
+        });
+    });
+    
+    function fetchMedicineDetails(medicineId) {
+        // This would typically be an AJAX call to your backend
+        // For demonstration, we'll simulate it with a timeout
+        
+        // Show loading state
+        document.getElementById('medicineDetailName').textContent = 'Loading...';
+        
+        // Simulate API call
+        setTimeout(() => {
+            // In a real application, you would get this data from your backend
+            const medicine = {
+                id: medicineId,
+                name: 'Sample Medicine',
+                category: 'Antibiotics',
+                description: 'This is a detailed description of the medicine and its uses.',
+                quantity_in_stock: 15,
+                reorder_level: 10,
+                unit_price: '450.00',
+                manufacturer: 'PharmaCo Ltd.',
+                batch_number: 'BATCH-2023-456',
+                expiry_date: '2024-12-31',
+                updated_at: '2023-05-15 14:30:00',
+                image_url: '{% static "path/to/default/image.jpg" %}'
+            };
+            
+            // Update modal with medicine details
+            document.getElementById('medicineDetailName').textContent = medicine.name;
+            document.getElementById('medicineDetailCategory').textContent = medicine.category;
+            document.getElementById('medicineDetailQuantity').textContent = medicine.quantity_in_stock;
+            document.getElementById('medicineDetailReorder').textContent = medicine.reorder_level;
+            document.getElementById('medicineDetailPrice').textContent = 'KSh ' + medicine.unit_price;
+            document.getElementById('medicineDetailManufacturer').textContent = medicine.manufacturer;
+            document.getElementById('medicineDetailBatch').textContent = medicine.batch_number;
+            document.getElementById('medicineDetailExpiry').textContent = medicine.expiry_date;
+            document.getElementById('medicineDetailUpdated').textContent = medicine.updated_at;
+            document.getElementById('medicineDetailDescription').textContent = medicine.description;
+            
+            // Handle image display
+            const imgContainer = document.getElementById('medicineImageContainer');
+            const defaultIcon = document.getElementById('medicineDefaultIcon');
+            const medicineImg = document.getElementById('medicineDetailImage');
+            
+            if (medicine.image_url) {
+                medicineImg.src = medicine.image_url;
+                medicineImg.style.display = 'block';
+                defaultIcon.style.display = 'none';
+            } else {
+                medicineImg.style.display = 'none';
+                defaultIcon.style.display = 'block';
+            }
+            
+            // Set the edit button's data-id
+            document.querySelector('.edit-from-detail').setAttribute('data-id', medicineId);
+        }, 500);
+    }
+</script>
+
+{% endblock %}

@@ -14,4 +14,19 @@ urlpatterns = [
     path('api/<int:pk>/detail/', views.patient_detail_ajax, name='detail_ajax'),
     path('api/<int:pk>/update/', views.update_patient_ajax, name='update_ajax'),
     path('api/<int:pk>/delete/', views.delete_patient_ajax, name='delete_ajax'),
+
+
+    # Medicine URLs
+    path('medicine/', views.MedicineListView.as_view(), name='medicine-list'),
+    path('medicine/create/', views.MedicineCreateView.as_view(), name='medicine-create'),
+    path('medicine/<int:pk>/', views.MedicineDetailView.as_view(), name='medicine-detail'),
+    path('medicine/<int:pk>/edit/', views.MedicineUpdateView.as_view(), name='medicine-update'),
+    path('medicine/<int:pk>/delete/', views.MedicineDeleteView.as_view(), name='medicine-delete'),
+    path('medicine/api/<int:pk>/', views.medicine_detail_api, name='medicine_api'),
+    
+    # Category URLs
+    path('medicine/categories/', views.CategoryListView.as_view(), name='category_list'),
+    path('medicine/categories/create/', views.CategoryCreateView.as_view(), name='category_create'),
+    path('medicine/categories/<int:pk>/edit/', views.CategoryUpdateView.as_view(), name='category_update'),
+    path('medicine/categories/<int:pk>/delete/', views.CategoryDeleteView.as_view(), name='category_delete'),
 ]

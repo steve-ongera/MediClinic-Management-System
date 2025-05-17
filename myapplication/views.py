@@ -303,3 +303,156 @@ def delete_patient_ajax(request, pk):
         return JsonResponse({'success': True, 'message': 'Patient deleted successfully'})
     
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+
+
+
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404
+
+from .models import Medicine, MedicineCategory
+
+
+class MedicineListView(LoginRequiredMixin, ListView):
+    """View for displaying all medicines in inventory"""
+    model = Medicine
+    template_name = 'medicines/medicine_list.html'  # This should match your template
+    context_object_name = 'medicines'
+    paginate_by = 12  # Display 12 medicines per page
+
+    def get_queryset(self):
+        """Custom queryset to allow filtering"""
+        queryset = super().get_queryset()
+        
+        # Add filtering by category if provided in GET parameters
+        category_id = self.request.GET.get('category')
+        if category_id:
+            queryset = queryset.filter(category_id=category_id)
+        
+        # Add search functionality if search term provided
+        search = self.request.GET.get('search')
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        
+        return queryset.order_by('-updated_at')
+    
+    def get_context_data(self, **kwargs):
+        """Add additional context data"""
+        context = super().get_context_data(**kwargs)
+        context['categories'] = MedicineCategory.objects.all()
+        return context
+
+
+class MedicineDetailView(LoginRequiredMixin, DetailView):
+    """View for displaying details of a single medicine"""
+    model = Medicine
+    template_name = 'medicines/medicine_detail.html'
+    context_object_name = 'medicine'
+
+
+class MedicineCreateView(LoginRequiredMixin, CreateView):
+    """View for creating a new medicine"""
+    model = Medicine
+    template_name = 'medicines/medicine_form.html'
+    fields = ['name', 'category', 'description', 'quantity_in_stock', 
+              'unit_price', 'reorder_level', 'manufacturer', 
+              'expiry_date', 'batch_number', 'image']
+    success_url = reverse_lazy('medicines:list')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Add New Medicine'
+        context['button_text'] = 'Add Medicine'
+        return context
+
+
+class MedicineUpdateView(LoginRequiredMixin, UpdateView):
+    """View for updating an existing medicine"""
+    model = Medicine
+    template_name = 'medicines/medicine_form.html'
+    fields = ['name', 'category', 'description', 'quantity_in_stock', 
+              'unit_price', 'reorder_level', 'manufacturer', 
+              'expiry_date', 'batch_number', 'image']
+    success_url = reverse_lazy('medicines-list')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Medicine'
+        context['button_text'] = 'Update Medicine'
+        return context
+
+
+class MedicineDeleteView(LoginRequiredMixin, DeleteView):
+    """View for deleting a medicine"""
+    model = Medicine
+    template_name = 'medicines/medicine_confirm_delete.html'
+    success_url = reverse_lazy('medicines-list')
+
+
+# API endpoint for medicine details (for AJAX requests)
+def medicine_detail_api(request, pk):
+    """API endpoint for getting medicine details via AJAX"""
+    medicine = get_object_or_404(Medicine, pk=pk)
+    
+    data = {
+        'id': medicine.pk,
+        'name': medicine.name,
+        'category': medicine.category.name if medicine.category else 'No Category',
+        'description': medicine.description or 'No description available',
+        'quantity_in_stock': medicine.quantity_in_stock,
+        'reorder_level': medicine.reorder_level,
+        'unit_price': str(medicine.unit_price),
+        'manufacturer': medicine.manufacturer or 'Not specified',
+        'batch_number': medicine.batch_number or 'Not specified',
+        'expiry_date': medicine.expiry_date.strftime('%Y-%m-%d') if medicine.expiry_date else 'Not specified',
+        'updated_at': medicine.updated_at.strftime('%Y-%m-%d %H:%M:%S'),
+        'image_url': medicine.image.url if medicine.image else None,
+        'is_low_stock': medicine.is_low_stock
+    }
+    
+    return JsonResponse(data)
+
+
+# Category related views
+class CategoryListView(LoginRequiredMixin, ListView):
+    """View for displaying all medicine categories"""
+    model = MedicineCategory
+    template_name = 'medicines/category_list.html'
+    context_object_name = 'categories'
+
+
+class CategoryCreateView(LoginRequiredMixin, CreateView):
+    """View for creating a new medicine category"""
+    model = MedicineCategory
+    template_name = 'medicines/category_form.html'
+    fields = ['name', 'description']
+    success_url = reverse_lazy('medicines:category_list')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Add New Category'
+        context['button_text'] = 'Add Category'
+        return context
+
+
+class CategoryUpdateView(LoginRequiredMixin, UpdateView):
+    """View for updating an existing medicine category"""
+    model = MedicineCategory
+    template_name = 'medicines/category_form.html'
+    fields = ['name', 'description']
+    success_url = reverse_lazy('medicines-category-list')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['title'] = 'Edit Category'
+        context['button_text'] = 'Update Category'
+        return context
+
+
+class CategoryDeleteView(LoginRequiredMixin, DeleteView):
+    """View for deleting a medicine category"""
+    model = MedicineCategory
+    template_name = 'medicines/category_confirm_delete.html'
+    success_url = reverse_lazy('medicines-category-list')

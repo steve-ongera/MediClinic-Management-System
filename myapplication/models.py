@@ -61,7 +61,7 @@ class MedicineCategory(models.Model):
 
 class Medicine(models.Model):
     name = models.CharField(max_length=200)
-    category = models.ForeignKey(MedicineCategory, on_delete=models.SET_NULL, null=True, blank=True)
+    category = models.ForeignKey('MedicineCategory', on_delete=models.SET_NULL, null=True, blank=True)
     description = models.TextField(blank=True, null=True)
     quantity_in_stock = models.PositiveIntegerField(default=0)
     unit_price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -69,6 +69,7 @@ class Medicine(models.Model):
     manufacturer = models.CharField(max_length=200, blank=True, null=True)
     expiry_date = models.DateField(blank=True, null=True)
     batch_number = models.CharField(max_length=100, blank=True, null=True)
+    image = models.ImageField(upload_to='medicine_images/', blank=True, null=True)  # ✅ New field
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     

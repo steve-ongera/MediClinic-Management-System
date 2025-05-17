@@ -3,7 +3,7 @@
 
 {% block title %}New Consultation{% endblock %}
 
-{% block extra_css %}
+{% block content %}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@1.5.2/dist/select2-bootstrap4.min.css" rel="stylesheet" />
 
@@ -125,9 +125,8 @@
         position: absolute;
     }
 </style>
-{% endblock %}
 
-{% block content %}
+
 <div class="container-fluid">
     <!-- Page Heading -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -488,6 +487,12 @@
         $('.select2').select2({
             theme: 'bootstrap4',
             width: '100%'
+        });
+
+        $('.select2-multiple').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            closeOnSelect: false
         });
         
         // Patient search functionality

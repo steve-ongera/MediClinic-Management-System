@@ -29,4 +29,11 @@ urlpatterns = [
     path('medicine/categories/create/', views.CategoryCreateView.as_view(), name='category_create'),
     path('medicine/categories/<int:pk>/edit/', views.CategoryUpdateView.as_view(), name='category_update'),
     path('medicine/categories/<int:pk>/delete/', views.CategoryDeleteView.as_view(), name='category_delete'),
+
+    # AJAX endpoint for patient search
+    path('patient/search/', views.patient_search_ajax, name='patient_search_ajax'),
+    
+    # Main consultation form view
+    path('consultation/new/', views.consultation_view, name='new_consultation'),
+    path('consultation/<int:pk>/', views.consultation_detail, name='consultation_detail'), 
 ]

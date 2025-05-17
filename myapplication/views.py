@@ -456,3 +456,160 @@ class CategoryDeleteView(LoginRequiredMixin, DeleteView):
     model = MedicineCategory
     template_name = 'medicines/category_confirm_delete.html'
     success_url = reverse_lazy('medicines-category-list')
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.forms import modelformset_factory, inlineformset_factory
+from django.http import JsonResponse
+from django.contrib import messages
+from django.db.models import Q
+
+from .models import Patient, Appointment, Consultation, Prescription, Disease, Medicine
+from .forms import PatientSearchForm, AppointmentForm, ConsultationForm, PrescriptionForm
+
+@login_required
+def patient_search_ajax(request):
+    """AJAX endpoint for searching patients"""
+    if request.method == 'GET':
+        query = request.GET.get('q', '')
+        if query:
+            patients = Patient.objects.filter(
+                Q(first_name__icontains=query) | 
+                Q(last_name__icontains=query) | 
+                Q(id_number__icontains=query)
+            )[:10]  # Limit to 10 results
+            results = []
+            for patient in patients:
+                results.append({
+                    'id': patient.id,
+                    'text': f"{patient.first_name} {patient.last_name} (ID: {patient.id_number})",
+                    'dob': patient.date_of_birth.strftime('%Y-%m-%d'),
+                    'gender': patient.get_gender_display(),
+                    'phone': patient.phone_number
+                })
+            return JsonResponse({'results': results})
+        return JsonResponse({'results': []})
+
+from django.contrib.auth import get_user_model
+User = get_user_model()
+
+@login_required
+def consultation_view(request):
+    """
+    Combined view for:
+    - Searching patients
+    - Creating/updating appointment
+    - Adding consultation
+    - Creating prescriptions
+    All saved at once with a single form submission
+    """
+    patient_search_form = PatientSearchForm()
+    appointment_form = AppointmentForm(initial={'doctor': request.user})
+    consultation_form = ConsultationForm()
+    
+    # Create a formset for prescriptions - allow 5 empty forms initially
+    PrescriptionFormSet = modelformset_factory(
+        Prescription, 
+        form=PrescriptionForm,
+        extra=5, 
+        can_delete=True
+    )
+    prescription_formset = PrescriptionFormSet(
+        queryset=Prescription.objects.none(),
+        prefix='prescriptions'
+    )
+    
+    if request.method == 'POST':
+        appointment_form = AppointmentForm(request.POST)
+        consultation_form = ConsultationForm(request.POST)
+        prescription_formset = PrescriptionFormSet(
+            request.POST, 
+            prefix='prescriptions'
+        )
+        
+        if (appointment_form.is_valid() and 
+            consultation_form.is_valid() and 
+            prescription_formset.is_valid()):
+            
+            try:
+                with transaction.atomic():
+                    # Save appointment
+                    appointment = appointment_form.save(commit=False)
+                    appointment.status = 'IN_PROGRESS'
+                    if hasattr(request.user, 'user_type') and request.user.user_type == 'RECEPTIONIST':
+                        appointment.receptionist = request.user
+                    appointment.save()
+                    
+                    # Save consultation
+                    consultation = consultation_form.save(commit=False)
+                    consultation.appointment = appointment
+                    consultation.save()
+                    
+                    # Handle many-to-many field
+                    consultation_form.save_m2m()
+                    
+                    # Save prescriptions
+                    prescriptions = prescription_formset.save(commit=False)
+                    for prescription in prescriptions:
+                        if prescription.medicine_id:  # Only save if a medicine was selected
+                            prescription.consultation = consultation
+                            prescription.save()
+                    
+                    # Handle deleted prescriptions
+                    for obj in prescription_formset.deleted_objects:
+                        obj.delete()
+                    
+                    messages.success(request, f"Consultation for {appointment.patient} saved successfully.")
+                    return redirect('consultation_detail', pk=consultation.pk)
+            
+            except Exception as e:
+                messages.error(request, f"Error saving consultation: {str(e)}")
+    
+    context = {
+        'patient_search_form': patient_search_form,
+        'appointment_form': appointment_form,
+        'consultation_form': consultation_form,
+        'prescription_formset': prescription_formset,
+        'medicines': Medicine.objects.all(),
+        'diseases': Disease.objects.all(),
+    }
+    
+    return render(request, 'clinic/consultation_form.html', context)
+
+
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
+
+from .models import Consultation, Prescription
+
+@login_required
+def consultation_detail(request, pk):
+    """
+    View for displaying details of a specific consultation
+    """
+    # Get the consultation object or return 404
+    consultation = get_object_or_404(Consultation, pk=pk)
+    
+    # Get the associated appointment
+    appointment = consultation.appointment
+    
+    # Security check - only allow doctors, receptionists, or admin to view
+    if hasattr(request.user, 'user_type'):
+        is_allowed = (request.user.user_type in ['DOCTOR', 'RECEPTIONIST', 'ADMIN'] or 
+                      request.user == appointment.doctor)
+        if not is_allowed:
+            return HttpResponseForbidden("You do not have permission to view this consultation")
+    
+    # Get all prescriptions for this consultation
+    prescriptions = Prescription.objects.filter(consultation=consultation)
+    
+    context = {
+        'consultation': consultation,
+        'appointment': appointment,
+        'patient': appointment.patient,
+        'prescriptions': prescriptions,
+    }
+    
+    return render(request, 'clinic/consultation_detail.html', context)

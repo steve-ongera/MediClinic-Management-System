@@ -1,0 +1,270 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}Consultation Details{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-section {
+        background-color: #fff;
+        border-radius: 5px;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .detail-section h3 {
+        border-bottom: 1px solid #e3e6f0;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+        color: #5a5c69;
+    }
+    .detail-row {
+        margin-bottom: 15px;
+    }
+    .detail-label {
+        font-weight: 600;
+        color: #4e73df;
+    }
+    .patient-info {
+        background-color: #f8f9fa;
+        border-left: 4px solid #4e73df;
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    .appointment-info {
+        background-color: #f8f9fa;
+        border-left: 4px solid #1cc88a;
+        padding: 15px;
+    }
+    .prescription-card {
+        border: 1px solid #e3e6f0;
+        border-radius: 5px;
+        padding: 15px;
+        margin-bottom: 15px;
+        background-color: #f8f9fa;
+    }
+    .prescription-header {
+        border-bottom: 1px solid #e3e6f0;
+        padding-bottom: 10px;
+        margin-bottom: 10px;
+        font-weight: 600;
+    }
+    .prescription-instruction {
+        font-style: italic;
+        color: #5a5c69;
+    }
+    .badge-dosage {
+        background-color: #4e73df;
+        color: white;
+    }
+    .badge-duration {
+        background-color: #1cc88a;
+        color: white;
+    }
+    .badge-quantity {
+        background-color: #f6c23e;
+        color: white;
+    }
+    .action-buttons {
+        margin-bottom: 20px;
+    }
+    .empty-list {
+        padding: 20px;
+        text-align: center;
+        background-color: #f8f9fa;
+        border-radius: 5px;
+        color: #858796;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Consultation Details</h1>
+        <div class="action-buttons">
+            <a href="{% url 'new_consultation' %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus"></i> New Consultation
+            </a>
+            <a href="#" class="btn btn-sm btn-info" onclick="window.print()">
+                <i class="fas fa-print"></i> Print
+            </a>
+            {% if request.user == appointment.doctor or request.user.user_type == 'ADMIN' %}
+            <a href="#" class="btn btn-sm btn-warning">
+                <i class="fas fa-edit"></i> Edit
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Patient Information Section -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="detail-section">
+                <div class="patient-info">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h4>{{ patient.first_name }} {{ patient.last_name }}</h4>
+                            <p class="mb-0">ID: {{ patient.id_number }} | DOB: {{ patient.date_of_birth|date:"M d, Y" }} | Gender: {{ patient.get_gender_display }}</p>
+                        </div>
+                        <div class="col-md-4 text-md-right">
+                            <p class="mb-0"><i class="fas fa-phone"></i> {{ patient.phone_number }}</p>
+                            {% if patient.email %}
+                            <p class="mb-0"><i class="fas fa-envelope"></i> {{ patient.email }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="appointment-info">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <h5>Appointment on {{ appointment.scheduled_time|date:"F d, Y" }} at {{ appointment.scheduled_time|date:"h:i a" }}</h5>
+                            <p class="mb-0">Doctor: Dr. {{ appointment.doctor.first_name }} {{ appointment.doctor.last_name }}</p>
+                        </div>
+                        <div class="col-md-4 text-md-right">
+                            <span class="badge badge-primary p-2">{{ appointment.get_status_display }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Consultation Details Section -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="detail-section">
+                <h3>Consultation Details</h3>
+                
+                <div class="row detail-row">
+                    <div class="col-md-2 detail-label">Diagnosis</div>
+                    <div class="col-md-10">{{ consultation.diagnosis }}</div>
+                </div>
+                
+                <div class="row detail-row">
+                    <div class="col-md-2 detail-label">Diseases/Conditions</div>
+                    <div class="col-md-10">
+                        {% if consultation.diseases.exists %}
+                            {% for disease in consultation.diseases.all %}
+                                <span class="badge badge-secondary p-2 mr-2">{{ disease.name }}{% if disease.icd_code %} ({{ disease.icd_code }}){% endif %}</span>
+                            {% endfor %}
+                        {% else %}
+                            <span class="text-muted">No diseases specified</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row detail-row">
+                    <div class="col-md-2 detail-label">Clinical Notes</div>
+                    <div class="col-md-10">{{ consultation.notes|default:"No clinical notes" }}</div>
+                </div>
+                
+                <div class="row detail-row">
+                    <div class="col-md-2 detail-label">Follow-up</div>
+                    <div class="col-md-10">
+                        {% if consultation.follow_up_date %}
+                            <p class="mb-1">Date: {{ consultation.follow_up_date|date:"F d, Y" }}</p>
+                            {% if consultation.follow_up_notes %}
+                                <p class="mb-0">Notes: {{ consultation.follow_up_notes }}</p>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">No follow-up scheduled</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row detail-row">
+                    <div class="col-md-2 detail-label">Created</div>
+                    <div class="col-md-10">{{ consultation.created_at|date:"F d, Y H:i" }}</div>
+                </div>
+                
+                <div class="row detail-row">
+                    <div class="col-md-2 detail-label">Last Updated</div>
+                    <div class="col-md-10">{{ consultation.updated_at|date:"F d, Y H:i" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Prescription Section -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="detail-section">
+                <h3>Prescriptions</h3>
+                
+                {% if prescriptions %}
+                    <div class="row">
+                        {% for prescription in prescriptions %}
+                            <div class="col-md-6">
+                                <div class="prescription-card">
+                                    <div class="prescription-header">
+                                        {{ prescription.medicine.name }}
+                                        {% if prescription.medicine.category %}
+                                            <span class="badge badge-dark float-right">{{ prescription.medicine.category }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="badge badge-dosage p-2">Dosage: {{ prescription.dosage }}</span>
+                                        <span class="badge badge-duration p-2">Duration: {{ prescription.duration }}</span>
+                                        <span class="badge badge-quantity p-2">Quantity: {{ prescription.quantity }}</span>
+                                    </div>
+                                    {% if prescription.instructions %}
+                                        <div class="prescription-instruction">
+                                            <i class="fas fa-info-circle"></i> {{ prescription.instructions }}
+                                        </div>
+                                    {% endif %}
+                                    <div class="text-muted small mt-2">
+                                        Prescribed on {{ prescription.prescribed_at|date:"M d, Y" }}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-list">
+                        <i class="fas fa-prescription-bottle-alt fa-2x mb-3"></i>
+                        <p>No prescriptions were added to this consultation.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Appointment Details Section -->
+    <div class="row">
+        <div class="col-xl-12">
+            <div class="detail-section">
+                <h3>Appointment Details</h3>
+                
+                <div class="row detail-row">
+                    <div class="col-md-2 detail-label">Reason for Visit</div>
+                    <div class="col-md-10">{{ appointment.reason }}</div>
+                </div>
+                
+                <div class="row detail-row">
+                    <div class="col-md-2 detail-label">Symptoms</div>
+                    <div class="col-md-10">{{ appointment.symptoms|default:"No symptoms recorded" }}</div>
+                </div>
+                
+                <div class="row detail-row">
+                    <div class="col-md-2 detail-label">Booked By</div>
+                    <div class="col-md-10">
+                        {% if appointment.receptionist %}
+                            {{ appointment.receptionist.first_name }} {{ appointment.receptionist.last_name }}
+                        {% else %}
+                            <span class="text-muted">Not specified</span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row detail-row">
+                    <div class="col-md-2 detail-label">Created</div>
+                    <div class="col-md-10">{{ appointment.created_at|date:"F d, Y H:i" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

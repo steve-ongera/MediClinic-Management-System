@@ -18,7 +18,6 @@ class CustomLoginForm(forms.Form):
 
 
 
-
 class PatientForm(forms.ModelForm):
     class Meta:
         model = Patient
@@ -28,7 +27,13 @@ class PatientForm(forms.ModelForm):
             'blood_type', 'allergies'
         ]
         widgets = {
-            'date_of_birth': forms.DateInput(attrs={'type': 'date'}),
-            'address': forms.Textarea(attrs={'rows': 2}),
-            'allergies': forms.Textarea(attrs={'rows': 3}),
+            'date_of_birth': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'address': forms.Textarea(attrs={'rows': 2, 'class': 'form-control'}),
+            'allergies': forms.Textarea(attrs={'rows': 3, 'class': 'form-control'}),
         }
+
+    def __init__(self, *args, **kwargs):
+        super(PatientForm, self).__init__(*args, **kwargs)
+        for field_name, field in self.fields.items():
+            if not field.widget.attrs.get('class'):
+                field.widget.attrs['class'] = 'form-control'

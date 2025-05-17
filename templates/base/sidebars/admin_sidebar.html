@@ -5,7 +5,7 @@
 
         <!-- Dashboard -->
         <li class="nav-item">
-            <a class="nav-link" href="#">
+            <a class="nav-link" href="{% url 'admin_dashboard'%}">
                 <i class="bi bi-speedometer2" style="color: #3498db;"></i>
                 <span style="color: #2c3e50;">Clinic Dashboard</span>
             </a>
@@ -20,7 +20,7 @@
             </a>
             <ul id="patients-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
                 <li><a href="{% url 'patients-list'%}"><i class="bi bi-person-vcard" style="color: #3498db;"></i> Patient Records</a></li>
-                <li><a href="#"><i class="bi bi-person-plus" style="color: #3498db;"></i> New Registration</a></li>
+                <li><a href="{% url 'patients-create'%}"><i class="bi bi-person-plus" style="color: #3498db;"></i> New Registration</a></li>
                 <li><a href="#"><i class="bi bi-file-medical" style="color: #3498db;"></i> Medical History</a></li>
                 <li><a href="#"><i class="bi bi-shield-check" style="color: #3498db;"></i> Insurance Records</a></li>
             </ul>

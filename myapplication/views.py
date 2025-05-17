@@ -161,3 +161,145 @@ def admin_dashboard_view(request):
     }
 
     return render(request, 'dashboard/admin_dashboard.html', context)
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.core.paginator import Paginator
+from django.contrib import messages
+from django.http import JsonResponse
+from django.db.models import Q
+import datetime
+from .models import Patient
+from .forms import PatientForm
+
+def patient_list(request):
+    """View function for listing all patients with pagination."""
+    patients_list = Patient.objects.all()
+    
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    if search_query:
+        patients_list = patients_list.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(id_number__icontains=search_query) |
+            Q(phone_number__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+    
+    # Pagination
+    paginator = Paginator(patients_list, 10)  # Show 10 patients per page
+    page = request.GET.get('page')
+    patients = paginator.get_page(page)
+    
+    context = {
+        'patients': patients
+    }
+    return render(request, 'patients/patient_list.html', context)
+
+def patient_create(request):
+    """View function for creating a new patient."""
+    if request.method == 'POST':
+        form = PatientForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Patient record created successfully!')
+            return redirect('patients:list')
+    else:
+        form = PatientForm()
+    
+    context = {
+        'form': form,
+        'is_create': True
+    }
+    return render(request, 'patients/patient_form.html', context)
+
+def patient_update(request, pk):
+    """View function for updating an existing patient."""
+    patient = get_object_or_404(Patient, pk=pk)
+    
+    if request.method == 'POST':
+        form = PatientForm(request.POST, instance=patient)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Patient record updated successfully!')
+            return redirect('patients:list')
+    else:
+        form = PatientForm(instance=patient)
+    
+    context = {
+        'form': form,
+        'patient': patient,
+        'is_update': True
+    }
+    return render(request, 'patients/patient_form.html', context)
+
+def patient_delete(request, pk):
+    """View function for deleting a patient."""
+    patient = get_object_or_404(Patient, pk=pk)
+    
+    if request.method == 'POST':
+        patient.delete()
+        messages.success(request, 'Patient record deleted successfully!')
+        return redirect('patients:list')
+    
+    context = {
+        'patient': patient
+    }
+    return render(request, 'patients/patient_confirm_delete.html', context)
+
+def patient_detail_ajax(request, pk):
+    """View function for retrieving patient details via AJAX."""
+    patient = get_object_or_404(Patient, pk=pk)
+    
+    # Calculate age
+    today = datetime.date.today()
+    age = today.year - patient.date_of_birth.year - (
+        (today.month, today.day) < (patient.date_of_birth.month, patient.date_of_birth.day)
+    )
+    
+    data = {
+        'id': patient.id,
+        'first_name': patient.first_name,
+        'last_name': patient.last_name,
+        'full_name': f"{patient.first_name} {patient.last_name}",
+        'gender': patient.get_gender_display(),
+        'gender_code': patient.gender,
+        'age': age,
+        'gender_age': f"{patient.get_gender_display()} • {age} years",
+        'id_number': patient.id_number,
+        'phone_number': patient.phone_number,
+        'email': patient.email or "No email provided",
+        'address': patient.address or "No address provided",
+        'blood_type': patient.blood_type or "Not specified",
+        'allergies': patient.allergies or "No allergies recorded",
+        'date_of_birth': patient.date_of_birth.strftime('%B %d, %Y'),
+        'dob_iso': patient.date_of_birth.strftime('%Y-%m-%d'),
+        'created_at': patient.created_at.strftime('%B %d, %Y'),
+        'updated_at': patient.updated_at.strftime('%B %d, %Y'),
+    }
+    
+    return JsonResponse(data)
+
+def update_patient_ajax(request, pk):
+    """View function for updating patient details via AJAX."""
+    patient = get_object_or_404(Patient, pk=pk)
+    
+    if request.method == 'POST':
+        form = PatientForm(request.POST, instance=patient)
+        if form.is_valid():
+            form.save()
+            return JsonResponse({'success': True, 'message': 'Patient updated successfully'})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
+
+def delete_patient_ajax(request, pk):
+    """View function for deleting patient via AJAX."""
+    if request.method == 'POST':
+        patient = get_object_or_404(Patient, pk=pk)
+        patient.delete()
+        return JsonResponse({'success': True, 'message': 'Patient deleted successfully'})
+    
+    return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)

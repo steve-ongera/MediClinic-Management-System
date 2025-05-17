@@ -38,4 +38,7 @@ urlpatterns = [
     path('consultation/<int:pk>/', views.consultation_detail, name='consultation_detail'), 
      path('consultations/', views.consultation_list, name='consultation_list'),
     path('consultations/delete/<int:pk>/', views.delete_consultation, name='delete_consultation'),
+
+    path('medicine-sales/', views.medicine_sales_list, name='medicine_sales_list'),
+    path('medicine-sales/<int:pk>/', views.medicine_sale_detail, name='medicine_sale_detail'),
 ]

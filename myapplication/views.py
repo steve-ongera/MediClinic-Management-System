@@ -667,3 +667,80 @@ def delete_consultation(request, pk):
         return redirect('consultation_list')
     
     return render(request, 'consultations/confirm_delete.html', {'consultation': consultation})
+
+
+from django.shortcuts import render, get_object_or_404
+from django.db.models import Q
+from django.core.paginator import Paginator
+from .models import MedicineSale, SoldMedicine
+from datetime import datetime, timedelta
+
+def medicine_sales_list(request):
+    # Get filter parameters
+    date_range = request.GET.get('date_range', 'today')
+    search_query = request.GET.get('search', '')
+    payment_method = request.GET.get('payment_method', '')
+    
+    # Base queryset
+    sales = MedicineSale.objects.select_related(
+        'patient', 
+        'receptionist'
+    ).prefetch_related('soldmedicine_set').order_by('-sale_date')
+    
+    # Apply date filters
+    today = datetime.now().date()
+    if date_range == 'today':
+        sales = sales.filter(sale_date__date=today)
+    elif date_range == 'week':
+        start_date = today - timedelta(days=7)
+        sales = sales.filter(sale_date__date__gte=start_date)
+    elif date_range == 'month':
+        start_date = today - timedelta(days=30)
+        sales = sales.filter(sale_date__date__gte=start_date)
+    elif date_range == 'year':
+        start_date = today - timedelta(days=365)
+        sales = sales.filter(sale_date__date__gte=start_date)
+    
+    # Apply payment method filter
+    if payment_method:
+        sales = sales.filter(payment_method=payment_method)
+    
+    # Apply search
+    if search_query:
+        sales = sales.filter(
+            Q(patient__first_name__icontains=search_query) |
+            Q(patient__last_name__icontains=search_query) |
+            Q(patient__id_number__icontains=search_query) |
+            Q(receptionist__first_name__icontains=search_query) |
+            Q(receptionist__last_name__icontains=search_query) |
+            Q(mpesa_code__icontains=search_query) |
+            Q(notes__icontains=search_query)
+        )
+    
+    # Pagination
+    paginator = Paginator(sales, 15)  # 15 sales per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'date_range': date_range,
+        'search_query': search_query,
+        'payment_method': payment_method,
+        'payment_methods': MedicineSale.PAYMENT_METHOD_CHOICES,
+    }
+    return render(request, 'medicine_sales/list.html', context)
+
+def medicine_sale_detail(request, pk):
+    sale = get_object_or_404(MedicineSale.objects.prefetch_related(
+        'soldmedicine_set',
+        'soldmedicine_set__medicine'
+    ), pk=pk)
+    
+    sold_medicines = sale.soldmedicine_set.all()
+    
+    context = {
+        'sale': sale,
+        'sold_medicines': sold_medicines,
+    }
+    return render(request, 'medicine_sales/detail.html', context)

@@ -171,7 +171,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #1a73e8; color: white;">
-                <h5 class="modal-title" id="viewPatientModalLabel">Patient Details</h5>
+                <h5 style="color:white" class="modal-title" id="viewPatientModalLabel">Patient Details</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -179,11 +179,13 @@
                     <div class="col-md-4 text-center">
                         <div class="mb-3">
                             <div class="avatar avatar-xl bg-primary bg-opacity-10 rounded-circle">
-                                <i class="fas fa-user fa-3x" style="color: #1a73e8;"></i>
+                                <i class="bi bi-person" style="font-size: 3rem; color: white;"></i>
                             </div>
                         </div>
+
                         <h4 id="patientFullName">Loading...</h4>
-                        <div class="badge bg-primary bg-opacity-10 text-primary mb-3" id="patientGenderAge">...</div>
+                        <div class="badge bg-primary bg-opacity-10 text-white mb-3" id="patientGenderAge">...</div>
+
                         <hr>
                         <div class="text-start">
                             <p><strong><i class="fas fa-id-card me-2" style="color: #1a73e8;"></i> ID Number:</strong> <span id="patientIdNumber">...</span></p>
@@ -194,7 +196,7 @@
                     <div class="col-md-8">
                         <div class="card mb-3 border-primary border-opacity-25">
                             <div class="card-header bg-primary bg-opacity-10">
-                                <h6 class="mb-0"><i class="fas fa-info-circle me-2"></i>Basic Information</h6>
+                                <h6 style="color:white" class="mb-0"><i class="fas fa-info-circle me-2"></i>Basic Information</h6>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -210,7 +212,7 @@
                         </div>
                     <div class="card border-primary border-opacity-25">
                         <div class="card-header bg-primary bg-opacity-10">
-                            <h6 class="mb-0"><i class="fas fa-allergies me-2"></i>Medical Information</h6>
+                            <h6 style="color:white" class="mb-0"><i class="fas fa-allergies me-2"></i>Medical Information</h6>
                         </div>
                         <div class="card-body">
                             <p><strong>Allergies:</strong></p>
@@ -234,7 +236,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #1a73e8; color: white;">
-                <h5 class="modal-title" id="editPatientModalLabel">Edit Patient</h5>
+                <h5 style="color:white" class="modal-title" id="editPatientModalLabel">Edit Patient</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form id="editPatientForm" method="post">
@@ -325,7 +327,7 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deletePatientModalLabel">Confirm Deletion</h5>
+                <h5 style="color:white" class="modal-title" id="deletePatientModalLabel">Confirm Deletion</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">

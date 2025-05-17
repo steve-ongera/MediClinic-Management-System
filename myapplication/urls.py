@@ -11,7 +11,7 @@ urlpatterns = [
     path('patients/<int:pk>/delete/', views.patient_delete, name='delete'),
     
     # AJAX URLs
-    path('api/<int:pk>/detail/', views.patient_detail_ajax, name='detail_ajax'),
+    path('patients/api/<int:pk>/detail/', views.patient_detail_ajax, name='detail_ajax'),
     path('api/<int:pk>/update/', views.update_patient_ajax, name='update_ajax'),
     path('api/<int:pk>/delete/', views.delete_patient_ajax, name='delete_ajax'),
 

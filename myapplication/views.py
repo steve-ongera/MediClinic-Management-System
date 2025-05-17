@@ -613,3 +613,57 @@ def consultation_detail(request, pk):
     }
     
     return render(request, 'clinic/consultation_detail.html', context)
+
+
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Q
+from .models import Consultation
+
+def consultation_list(request):
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    
+    consultations = Consultation.objects.select_related(
+        'appointment', 
+        'appointment__patient', 
+        'appointment__doctor'
+    ).order_by('-created_at')
+    
+    if search_query:
+        consultations = consultations.filter(
+            Q(appointment__patient__first_name__icontains=search_query) |
+            Q(appointment__patient__last_name__icontains=search_query) |
+            Q(appointment__patient__id_number__icontains=search_query) |
+            Q(diagnosis__icontains=search_query) |
+            Q(notes__icontains=search_query)
+        )
+    
+    # Pagination
+    paginator = Paginator(consultations, 10)  # Show 10 consultations per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+    }
+    return render(request, 'consultations/consultation_list.html', context)
+
+def delete_consultation(request, pk):
+    consultation = get_object_or_404(Consultation, pk=pk)
+    
+    if request.method == 'POST':
+        # Check permissions (example - only doctors and admins can delete)
+        if not (request.user.user_type in ['DOCTOR', 'ADMIN']):
+            messages.error(request, "You don't have permission to delete consultations.")
+            return redirect('consultation_list')
+            
+        consultation.delete()
+        messages.success(request, "Consultation deleted successfully.")
+        return redirect('consultation_list')
+    
+    return render(request, 'consultations/confirm_delete.html', {'consultation': consultation})

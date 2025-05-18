@@ -1,0 +1,150 @@
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}All Medical Records{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-clipboard-list me-2"></i>
+            All Medical Records
+        </h1>
+        <div>
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Search records..." id="recordSearch">
+                <button class="btn btn-primary" type="button">
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Medical Records Card -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Medical History Records</h5>
+            <div>
+                <span class="badge bg-primary">{{ records.count }} total records</span>
+            </div>
+        </div>
+        
+        <div class="card-body">
+            {% if records %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Patient</th>
+                            <th>Record Type</th>
+                            <th>Description</th>
+                            <th>Date Recorded</th>
+                            <th>Recorded By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'patient_detail' record.patient.id %}">
+                                    {{ record.patient.first_name }} {{ record.patient.last_name }}
+                                </a>
+                                <br>
+                                <small class="text-muted">ID: {{ record.patient.id_number }}</small>
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if record.record_type == 'Allergy' %}bg-danger
+                                    {% elif record.record_type == 'Surgery' %}bg-warning text-dark
+                                    {% elif record.record_type == 'Chronic Condition' %}bg-info
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ record.record_type }}
+                                </span>
+                            </td>
+                            <td>{{ record.description|truncatewords:8 }}</td>
+                            <td>{{ record.date_recorded|date:"M d, Y" }}</td>
+                            <td>
+                                {% if record.recorded_by %}
+                                {{ record.recorded_by.get_full_name }}
+                                {% else %}
+                                System
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'medical_history_detail' record.patient.id record.id %}" 
+                                   class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center mt-4">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1" aria-label="First">
+                            <span aria-hidden="true">&laquo;&laquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <li class="page-item active"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}">{{ num }}</a></li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}" aria-label="Last">
+                            <span aria-hidden="true">&raquo;&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-4">
+                <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No medical records found</h5>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function(){
+    // Simple search functionality
+    $("#recordSearch").on("keyup", function() {
+        var value = $(this).val().toLowerCase();
+        $("table tbody tr").filter(function() {
+            $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+        });
+    });
+});
+</script>
+{% endblock %}

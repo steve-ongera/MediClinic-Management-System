@@ -749,3 +749,49 @@ def medicine_sale_detail(request, pk):
         'sold_medicines': sold_medicines,
     }
     return render(request, 'medicine_sales/detail.html', context)
+
+
+
+from django.shortcuts import render, get_object_or_404
+from django.core.paginator import Paginator
+from .models import PatientMedicalHistory, Patient
+
+def all_medical_records(request):
+    records = PatientMedicalHistory.objects.all().order_by('-date_recorded')
+    
+    # Pagination
+    paginator = Paginator(records, 25)  # Show 25 records per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    context = {
+        'records': page_obj,
+        'page_obj': page_obj,
+    }
+    return render(request, 'medical_history/all_medical_records.html', context)
+
+def patient_medical_history(request, patient_id):
+    patient = get_object_or_404(Patient, id=patient_id)
+    medical_history = PatientMedicalHistory.objects.filter(patient=patient).order_by('-date_recorded')
+    
+    # Count different record types
+    allergy_count = medical_history.filter(record_type='Allergy').count()
+    chronic_condition_count = medical_history.filter(record_type='Chronic Condition').count()
+    surgery_count = medical_history.filter(record_type='Surgery').count()
+    
+    # Filtered records for tabs
+    allergies = medical_history.filter(record_type='Allergy')
+    chronic_conditions = medical_history.filter(record_type='Chronic Condition')
+    surgeries = medical_history.filter(record_type='Surgery')
+    
+    context = {
+        'patient': patient,
+        'medical_history': medical_history,
+        'allergy_count': allergy_count,
+        'chronic_condition_count': chronic_condition_count,
+        'surgery_count': surgery_count,
+        'allergies': allergies,
+        'chronic_conditions': chronic_conditions,
+        'surgeries': surgeries,
+    }
+    return render(request, 'medical_history/patient_medical_history.html', context)

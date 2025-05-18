@@ -48,7 +48,7 @@
                         {% for record in records %}
                         <tr>
                             <td>
-                                <a href="{% url 'patient_detail' record.patient.id %}">
+                                <a href="{% url 'patient_medical_history' record.patient.id %}">
                                     {{ record.patient.first_name }} {{ record.patient.last_name }}
                                 </a>
                                 <br>
@@ -73,13 +73,14 @@
                                 {% endif %}
                             </td>
                             <td>
-                                <a href="{% url 'medical_history_detail' record.patient.id record.id %}" 
-                                   class="btn btn-sm btn-outline-primary">
+                                <a href="{% url 'patient_medical_history' record.patient.id %}" 
+                                class="btn btn-sm btn-outline-primary">
                                     <i class="fas fa-eye"></i> View
                                 </a>
                             </td>
                         </tr>
                         {% endfor %}
+
                     </tbody>
                 </table>
             </div>

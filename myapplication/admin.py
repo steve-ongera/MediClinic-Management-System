@@ -124,7 +124,7 @@ class MedicineSaleAdmin(admin.ModelAdmin):
     list_display = ('id', 'patient', 'payment_method', 'total_amount', 'sale_date')
     list_filter = ('payment_method', 'sale_date')
     search_fields = ('patient__first_name', 'patient__last_name', 'mpesa_code')
-    raw_id_fields = ('patient', 'receptionist')
+    raw_id_fields = ('patient', 'receptionist' )
     inlines = [SoldMedicineInline]
     date_hierarchy = 'sale_date'
 

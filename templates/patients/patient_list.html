@@ -384,6 +384,9 @@
         color: #1a73e8 !important;
     }
 </style>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Select2 for better dropdowns -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     // View Patient Modal
@@ -403,9 +406,14 @@ document.addEventListener("DOMContentLoaded", function() {
             
             document.querySelector('.edit-from-view').setAttribute('data-id', patientId);
             
-            // Fetch patient data via AJAX
+            // Fetch patient data via AJAX - URL corrected
             fetch(`/patients/api/${patientId}/detail/`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     document.getElementById('patientFullName').textContent = data.full_name;
                     document.getElementById('patientGenderAge').textContent = data.gender_age;
@@ -429,7 +437,8 @@ document.addEventListener("DOMContentLoaded", function() {
     editButtons.forEach(button => {
         button.addEventListener('click', function() {
             const patientId = this.getAttribute('data-id');
-            document.getElementById('editPatientForm').action = `/patients/api/${patientId}/update/`;
+            // URL corrected
+            document.getElementById('editPatientForm').action = `/api/${patientId}/update/`;
             
             // Reset form
             document.getElementById('editFirstName').value = "";
@@ -445,7 +454,12 @@ document.addEventListener("DOMContentLoaded", function() {
             
             // Fetch patient data via AJAX
             fetch(`/patients/api/${patientId}/detail/`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     document.getElementById('editFirstName').value = data.first_name;
                     document.getElementById('editLastName').value = data.last_name;
@@ -479,7 +493,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 'X-Requested-With': 'XMLHttpRequest',
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 // Close modal
@@ -509,11 +528,17 @@ document.addEventListener("DOMContentLoaded", function() {
     deleteButtons.forEach(button => {
         button.addEventListener('click', function() {
             const patientId = this.getAttribute('data-id');
-            document.getElementById('deletePatientForm').action = `/patients/api/${patientId}/delete/`;
+            // URL corrected
+            document.getElementById('deletePatientForm').action = `/api/${patientId}/delete/`;
             
             // Fetch patient name
             fetch(`/patients/api/${patientId}/detail/`)
-                .then(response => response.json())
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error ${response.status}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     document.getElementById('patientToDelete').textContent = `${data.full_name} (ID: ${data.id_number})`;
                 })
@@ -538,7 +563,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 'X-Requested-With': 'XMLHttpRequest',
             }
         })
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error ${response.status}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 // Close modal

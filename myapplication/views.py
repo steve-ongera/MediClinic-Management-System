@@ -71,8 +71,7 @@ def logout_view(request):
     return redirect('login')  # Change 'login' to your login view name or URL
 
 
-from django.contrib.auth.decorators import login_required, user_passes_test
-@login_required
+
 def admin_dashboard_view(request):
     date_filter = request.GET.get('date_filter', 'month')
     
@@ -109,9 +108,10 @@ def admin_dashboard_view(request):
     medicine_labels = [item['medicine__name'] for item in best_selling]
     medicine_counts = [item['total_sold'] for item in best_selling]
 
-    # Line chart sales data
+    # Line chart sales data - LAST 7 DAYS ONLY
+    last_7_days = timezone.now() - timedelta(days=7)
     sales_data = MedicineSale.objects.filter(
-        sale_date__gte=start_date
+        sale_date__gte=last_7_days
     ).annotate(
         date=Trunc('sale_date', 'day', output_field=DateTimeField())
     ).values('date').annotate(
@@ -121,7 +121,7 @@ def admin_dashboard_view(request):
     sales_dates = [item['date'].strftime('%Y-%m-%d') for item in sales_data]
     sales_amounts = [float(item['total']) for item in sales_data]
 
-    # Payment method stats
+    # Payment method stats - still using the selected date filter
     payment_methods = MedicineSale.objects.filter(
         sale_date__gte=start_date
     ).values('payment_method').annotate(
@@ -204,7 +204,7 @@ def patient_create(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Patient record created successfully!')
-            return redirect('patients:list')
+            return redirect('patients-list')
     else:
         form = PatientForm()
     
@@ -250,10 +250,15 @@ def patient_delete(request, pk):
 
 def patient_detail_ajax(request, pk):
     """View function for retrieving patient details via AJAX."""
+    import datetime  # Correct import method 1
+    # OR use: from datetime import date  # Correct import method 2
+    
     patient = get_object_or_404(Patient, pk=pk)
     
-    # Calculate age
-    today = datetime.date.today()
+    # Calculate age - fixed datetime usage
+    today = datetime.date.today()  # If using import datetime
+    # OR use: today = date.today()  # If using from datetime import date
+    
     age = today.year - patient.date_of_birth.year - (
         (today.month, today.day) < (patient.date_of_birth.month, patient.date_of_birth.day)
     )

@@ -101,12 +101,20 @@ def admin_dashboard_view(request):
     disease_counts = [d.count for d in common_diseases]
 
     # Top 5 best-selling medicines
+    # In your admin_dashboard_view
+    # Top 5 best-selling medicines - with fallback for empty data
     best_selling = SoldMedicine.objects.values('medicine__name').annotate(
         total_sold=Sum('quantity')
     ).order_by('-total_sold')[:5]
 
+    # Ensure we always have 5 items for consistent chart display
+    if len(best_selling) < 5:
+        # Fill with empty data if needed
+        for i in range(5 - len(best_selling)):
+            best_selling.append({'medicine__name': f'Medicine {i+1}', 'total_sold': 0})
+
     medicine_labels = [item['medicine__name'] for item in best_selling]
-    medicine_counts = [item['total_sold'] for item in best_selling]
+    medicine_counts = [item['total_sold'] or 0 for item in best_selling]  # Ensure no None values
 
     # Line chart sales data - LAST 7 DAYS ONLY
     last_7_days = timezone.now() - timedelta(days=7)

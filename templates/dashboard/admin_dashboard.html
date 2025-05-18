@@ -433,37 +433,67 @@
 
         <!-- Best Selling Medicines -->
         <div class="card">
-          <div class="filter">
-            <a class="icon" href="#" data-bs-toggle="dropdown"><i class="bi bi-three-dots"></i></a>
-            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow">
-              <li class="dropdown-header text-start">
-                <h6>Filter</h6>
-              </li>
-              <li><a class="dropdown-item" href="#">This Week</a></li>
-              <li><a class="dropdown-item" href="#">This Month</a></li>
-              <li><a class="dropdown-item" href="#">This Year</a></li>
-            </ul>
-          </div>
+          
           <div class="card-body pb-0">
-            <h5 class="card-title">Best Selling Medicines <span>| This Month</span></h5>
+            <h5 class="card-title">Top 5 Best-Selling Medicines</h5>
             <div class="news">
-              {% for item in best_selling %}
+              
               <div class="post-item clearfix">
                 <div class="d-flex justify-content-between">
-                  <div>
-                    <h6>{{ item.medicine__name }}</h6>
-                    <p class="mb-0">Sold: {{ item.total_sold }} units</p>
+                   
+                  <div class="card-body">
+                      <canvas id="topMedicinesChart" height="300"></canvas>
                   </div>
-                  <span class="badge bg-primary">
-                    #{{ forloop.counter }}
-                  </span>
                 </div>
                 <hr class="my-2">
               </div>
-              {% endfor %}
+              
             </div>
           </div>
-        </div><!-- End Best Selling Medicines -->
+        </div>
+        <!-- In your admin_dashboard.html template -->
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check if medicine data exists
+            console.log("Medicine Labels:", {{ medicine_labels|safe }});
+            console.log("Medicine Counts:", {{ medicine_counts|safe }});
+            
+            // Your chart initialization code should be here
+            const ctx = document.getElementById('topMedicinesChart').getContext('2d');
+            const topMedicinesChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: JSON.parse('{{ medicine_labels|escapejs }}'),
+                    datasets: [{
+                        label: 'Units Sold',
+                        data: JSON.parse('{{ medicine_counts|escapejs }}'),
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Top 5 Best-Selling Medicines'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Units Sold'
+                            }
+                        }
+                    }
+                }
+            });
+        });
+        </script>
+        <!-- End Best Selling Medicines -->
 
         <!-- Recent Notifications -->
         <div class="card">

@@ -898,3 +898,136 @@ def medicine_category_detail(request, category_id):
         'total_medicines': medicines.count(),
     }
     return render(request, 'medicines/category_detail.html', context)
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.core.paginator import Paginator
+from django.db.models import Q
+from .models import Doctor
+from .forms import DoctorForm  # You'll need to create this form
+
+
+def doctor_list(request):
+    """
+    Function-based view to display a list of all doctors with search and pagination.
+    """
+    search_query = request.GET.get('search', '')
+    specialization_filter = request.GET.get('specialization', '')
+    
+    doctors = Doctor.objects.all()
+    
+    # Apply search filter
+    if search_query:
+        doctors = doctors.filter(
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(license_number__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+    
+    # Apply specialization filter
+    if specialization_filter:
+        doctors = doctors.filter(specialization=specialization_filter)
+    
+    # Order by last name
+    doctors = doctors.order_by('last_name', 'first_name')
+    
+    # Pagination
+    paginator = Paginator(doctors, 10)  # Show 10 doctors per page
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Get all specializations for filter dropdown
+    specializations = Doctor.SPECIALIZATION_CHOICES
+    
+    context = {
+        'page_obj': page_obj,
+        'search_query': search_query,
+        'specialization_filter': specialization_filter,
+        'specializations': specializations,
+        'total_doctors': doctors.count(),
+    }
+    
+    return render(request, 'doctors/doctor_list.html', context)
+
+
+def doctor_detail(request, pk):
+    """
+    Function-based view to display detailed information about a specific doctor.
+    """
+    doctor = get_object_or_404(Doctor, pk=pk)
+    
+    context = {
+        'doctor': doctor,
+    }
+    
+    return render(request, 'doctors/doctor_detail.html', context)
+
+
+def doctor_add(request):
+    """
+    Function-based view to add a new doctor.
+    """
+    if request.method == 'POST':
+        form = DoctorForm(request.POST, request.FILES)
+        if form.is_valid():
+            doctor = form.save()
+            messages.success(request, f'Doctor {doctor.full_name} has been added successfully.')
+            return redirect('doctor_detail', pk=doctor.pk)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = DoctorForm()
+    
+    context = {
+        'form': form,
+        'title': 'Add New Doctor',
+    }
+    
+    return render(request, 'doctors/doctor_form.html', context)
+
+
+def doctor_edit(request, pk):
+    """
+    Function-based view to edit an existing doctor.
+    """
+    doctor = get_object_or_404(Doctor, pk=pk)
+    
+    if request.method == 'POST':
+        form = DoctorForm(request.POST, request.FILES, instance=doctor)
+        if form.is_valid():
+            doctor = form.save()
+            messages.success(request, f'Doctor {doctor.full_name} has been updated successfully.')
+            return redirect('doctor_detail', pk=doctor.pk)
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = DoctorForm(instance=doctor)
+    
+    context = {
+        'form': form,
+        'doctor': doctor,
+        'title': f'Edit Doctor - {doctor.full_name}',
+    }
+    
+    return render(request, 'doctors/doctor_form.html', context)
+
+
+def doctor_delete(request, pk):
+    """
+    Function-based view to delete a doctor (with confirmation).
+    """
+    doctor = get_object_or_404(Doctor, pk=pk)
+    
+    if request.method == 'POST':
+        doctor_name = doctor.full_name
+        doctor.delete()
+        messages.success(request, f'Doctor {doctor_name} has been deleted successfully.')
+        return redirect('doctor_list')
+    
+    context = {
+        'doctor': doctor,
+    }
+    
+    return render(request, 'doctors/doctor_confirm_delete.html', context)

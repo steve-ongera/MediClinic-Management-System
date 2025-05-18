@@ -192,3 +192,241 @@ class PrescriptionFormSet(forms.BaseModelFormSet):
             for field in form.fields.values():
                 if 'class' not in field.widget.attrs:
                     field.widget.attrs['class'] = 'form-control'
+
+
+
+
+from django import forms
+from django.core.validators import RegexValidator
+from .models import Doctor
+
+
+class DoctorForm(forms.ModelForm):
+    """
+    Form for adding and editing doctors with custom validation and widgets.
+    """
+    
+    # Custom validators
+    phone_validator = RegexValidator(
+        regex=r'^\+?1?\d{9,15}$',
+        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."
+    )
+    
+    class Meta:
+        model = Doctor
+        fields = [
+            # Personal Information
+            'first_name', 'last_name', 'date_of_birth', 'gender',
+            'id_number', 'national_id', 'passport_number',
+            # Contact Information
+            'phone_number', 'alternate_phone', 'email',
+            'emergency_contact', 'emergency_phone',
+            # Address Information
+            'address', 'city', 'state', 'country', 'postal_code',
+            # Medical Information
+            'blood_type', 'allergies', 'chronic_conditions',
+            # Professional Information
+            'specialization', 'license_number', 'license_expiry',
+            'years_of_experience', 'qualifications', 'bio',
+            # Hospital/Clinic Affiliation
+            'is_active', 'joining_date', 'department', 'position',
+            # System Information
+            'profile_picture', 'signature',
+            # Availability
+            'working_days', 'working_hours',
+        ]
+        
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter first name'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter last name'
+            }),
+            'date_of_birth': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'gender': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'id_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter ID number'
+            }),
+            'national_id': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter national ID (optional)'
+            }),
+            'passport_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter passport number (optional)'
+            }),
+            'phone_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+1234567890'
+            }),
+            'alternate_phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+1234567890 (optional)'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'doctor@email.com'
+            }),
+            'emergency_contact': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Emergency contact name'
+            }),
+            'emergency_phone': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': '+1234567890'
+            }),
+            'address': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'Full address'
+            }),
+            'city': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'City'
+            }),
+            'state': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'State/Province'
+            }),
+            'country': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Country'
+            }),
+            'postal_code': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Postal/ZIP code'
+            }),
+            'blood_type': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'allergies': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'List any known allergies'
+            }),
+            'chronic_conditions': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 3,
+                'placeholder': 'List any chronic conditions'
+            }),
+            'specialization': forms.Select(attrs={
+                'class': 'form-control'
+            }),
+            'license_number': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Medical license number'
+            }),
+            'license_expiry': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'years_of_experience': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': 0,
+                'max': 100
+            }),
+            'qualifications': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'List qualifications, degrees, certifications'
+            }),
+            'bio': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Professional biography'
+            }),
+            'is_active': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'joining_date': forms.DateInput(attrs={
+                'class': 'form-control',
+                'type': 'date'
+            }),
+            'department': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Department'
+            }),
+            'position': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Position/Title'
+            }),
+            'profile_picture': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
+            'signature': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*'
+            }),
+            'working_days': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., Mon,Tue,Wed,Thu,Fri'
+            }),
+            'working_hours': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'e.g., 9:00 AM - 5:00 PM'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # Add phone validators
+        self.fields['phone_number'].validators.append(self.phone_validator)
+        self.fields['alternate_phone'].validators.append(self.phone_validator)
+        self.fields['emergency_phone'].validators.append(self.phone_validator)
+        
+        # Make certain fields required
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required = True
+        self.fields['date_of_birth'].required = True
+        self.fields['gender'].required = True
+        self.fields['phone_number'].required = True
+        self.fields['specialization'].required = True
+        self.fields['license_number'].required = True
+        
+        # Add help text
+        self.fields['working_days'].help_text = "Enter working days separated by commas (e.g., Mon,Tue,Wed,Thu,Fri)"
+        self.fields['working_hours'].help_text = "Enter working hours (e.g., 9:00 AM - 5:00 PM)"
+    
+    def clean_id_number(self):
+        id_number = self.cleaned_data.get('id_number')
+        if id_number:
+            # Check if another doctor has this ID number (excluding current instance)
+            qs = Doctor.objects.filter(id_number=id_number)
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError("A doctor with this ID number already exists.")
+        return id_number
+    
+    def clean_license_number(self):
+        license_number = self.cleaned_data.get('license_number')
+        if license_number:
+            # Check if another doctor has this license number (excluding current instance)
+            qs = Doctor.objects.filter(license_number=license_number)
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError("A doctor with this license number already exists.")
+        return license_number
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if email:
+            # Check if another doctor has this email (excluding current instance)
+            qs = Doctor.objects.filter(email=email)
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError("A doctor with this email already exists.")
+        return email

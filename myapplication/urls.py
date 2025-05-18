@@ -55,4 +55,12 @@ urlpatterns = [
     
     # Patient-specific medical history
     path('patients/<int:patient_id>/medical-history/', views.patient_medical_history, name='patient_medical_history'),
+
+ 
+    path('doctor/', views.doctor_list, name='doctor_list'),
+    path('doctor/<int:pk>/', views.doctor_detail, name='doctor_detail'),
+    path('doctor/add/', views.doctor_add, name='doctor_add'),
+    path('doctor/<int:pk>/edit/', views.doctor_edit, name='doctor_edit'),
+    path('doctor/<int:pk>/delete/', views.doctor_delete, name='doctor_delete'),
+
 ]

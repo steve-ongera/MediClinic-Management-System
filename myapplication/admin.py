@@ -164,3 +164,126 @@ class ClinicSettingsAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         # Check if there's already a clinic settings object
         return ClinicSettings.objects.count() == 0
+    
+
+
+
+from django.contrib import admin
+from .models import Doctor
+
+@admin.register(Doctor)
+class DoctorAdmin(admin.ModelAdmin):
+    list_display = (
+        'full_name', 'specialization', 'license_number', 'license_status',
+        'phone_number', 'email', 'is_active', 'created_at'
+    )
+    list_filter = (
+        'specialization', 'gender', 'is_active', 'blood_type', 'department',
+    )
+    search_fields = (
+        'first_name', 'last_name', 'id_number', 'license_number', 'phone_number', 'email',
+    )
+    ordering = ('-created_at',)
+    readonly_fields = ('created_at', 'updated_at', 'license_status', 'age')
+
+    fieldsets = (
+        ('Personal Information', {
+            'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'id_number',
+                       'national_id', 'passport_number', 'blood_type', 'age')
+        }),
+        ('Contact Information', {
+            'fields': ('phone_number', 'alternate_phone', 'email',
+                       'emergency_contact', 'emergency_phone')
+        }),
+        ('Address', {
+            'fields': ('address', 'city', 'state', 'country', 'postal_code')
+        }),
+        ('Medical Info', {
+            'fields': ('allergies', 'chronic_conditions')
+        }),
+        ('Professional Details', {
+            'fields': ('specialization', 'license_number', 'license_expiry', 'license_status',
+                       'years_of_experience', 'qualifications', 'bio',
+                       'department', 'position', 'is_active', 'joining_date')
+        }),
+        ('Working Schedule', {
+            'fields': ('working_days', 'working_hours')
+        }),
+        ('Media', {
+            'fields': ('profile_picture', 'signature')
+        }),
+        ('System Info', {
+            'fields': ('created_at', 'updated_at')
+        }),
+    )
+
+
+from django.contrib import admin
+from .models import Nurse
+
+@admin.register(Nurse)
+class NurseAdmin(admin.ModelAdmin):
+    list_display = (
+        'full_name', 'nurse_type', 'department', 'license_number', 'license_status',
+        'phone_number', 'email', 'is_active', 'is_charge_nurse', 'created_at'
+    )
+    list_filter = (
+        'nurse_type', 'department', 'gender', 'is_active',
+        'is_bcls_certified', 'is_acl_certified', 'is_pals_certified'
+    )
+    search_fields = (
+        'first_name', 'last_name', 'nurse_id', 'license_number', 'phone_number', 'email',
+    )
+    ordering = ('-created_at',)
+    readonly_fields = ('created_at', 'updated_at', 'license_status', 'age')
+
+    fieldsets = (
+        ('Personal Information', {
+            'fields': (
+                'first_name', 'last_name', 'date_of_birth', 'gender', 'nurse_id',
+                'national_id', 'blood_type', 'age'
+            )
+        }),
+        ('Contact Information', {
+            'fields': (
+                'phone_number', 'alternate_phone', 'email',
+                'emergency_contact', 'emergency_relation', 'emergency_phone'
+            )
+        }),
+        ('Address', {
+            'fields': (
+                'address', 'city', 'state', 'country', 'postal_code'
+            )
+        }),
+        ('Medical Info', {
+            'fields': (
+                'allergies', 'chronic_conditions'
+            )
+        }),
+        ('Professional Details', {
+            'fields': (
+                'nurse_type', 'department', 'specialization', 'license_number', 'license_expiry',
+                'license_status', 'years_of_experience', 'certifications', 'bio'
+            )
+        }),
+        ('Employment Details', {
+            'fields': (
+                'position', 'shift_pattern', 'is_charge_nurse', 'is_active', 'joining_date'
+            )
+        }),
+        ('Skills & Competencies', {
+            'fields': (
+                'is_bcls_certified', 'is_acl_certified', 'is_pals_certified', 'additional_skills'
+            )
+        }),
+        ('Media', {
+            'fields': (
+                'profile_picture', 'signature'
+            )
+        }),
+        ('System Info', {
+            'fields': (
+                'created_at', 'updated_at'
+            )
+        }),
+    )

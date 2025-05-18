@@ -144,6 +144,156 @@ class Doctor(models.Model):
         ]
 
 
+from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.utils.translation import gettext_lazy as _
+
+class Nurse(models.Model):
+    GENDER_CHOICES = (
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+        ('U', 'Prefer Not to Say'),
+    )
+    
+    BLOOD_TYPE_CHOICES = (
+        ('A+', 'A+'),
+        ('A-', 'A-'),
+        ('B+', 'B+'),
+        ('B-', 'B-'),
+        ('AB+', 'AB+'),
+        ('AB-', 'AB-'),
+        ('O+', 'O+'),
+        ('O-', 'O-'),
+    )
+    
+    NURSE_TYPE_CHOICES = (
+        ('RN', 'Registered Nurse'),
+        ('LPN', 'Licensed Practical Nurse'),
+        ('NP', 'Nurse Practitioner'),
+        ('CNS', 'Clinical Nurse Specialist'),
+        ('CRNA', 'Certified Registered Nurse Anesthetist'),
+        ('CNM', 'Certified Nurse Midwife'),
+        ('SN', 'Student Nurse'),
+    )
+    
+    DEPARTMENT_CHOICES = (
+        ('ER', 'Emergency Room'),
+        ('ICU', 'Intensive Care Unit'),
+        ('OR', 'Operating Room'),
+        ('PED', 'Pediatrics'),
+        ('OB', 'Obstetrics'),
+        ('ONC', 'Oncology'),
+        ('CAR', 'Cardiology'),
+        ('PSY', 'Psychiatry'),
+        ('GEN', 'General Ward'),
+        ('OPD', 'Outpatient Department'),
+    )
+    
+    # Personal Information
+    first_name = models.CharField(_("First Name"), max_length=100)
+    last_name = models.CharField(_("Last Name"), max_length=100)
+    date_of_birth = models.DateField(_("Date of Birth"))
+    gender = models.CharField(_("Gender"), max_length=1, choices=GENDER_CHOICES)
+    national_id = models.CharField(_("National ID"), max_length=20, blank=True, null=True)
+    nurse_id = models.CharField(_("Nurse ID"), max_length=20, unique=True)
+    
+    # Contact Information
+    phone_number = models.CharField(_("Phone Number"), max_length=15)
+    alternate_phone = models.CharField(_("Alternate Phone"), max_length=15, blank=True, null=True)
+    email = models.EmailField(_("Email"), blank=True, null=True)
+    emergency_contact = models.CharField(_("Emergency Contact"), max_length=100, blank=True, null=True)
+    emergency_relation = models.CharField(_("Relationship"), max_length=50, blank=True, null=True)
+    emergency_phone = models.CharField(_("Emergency Phone"), max_length=15, blank=True, null=True)
+    
+    # Address Information
+    address = models.TextField(_("Address"), blank=True, null=True)
+    city = models.CharField(_("City"), max_length=100, blank=True, null=True)
+    state = models.CharField(_("State/Province"), max_length=100, blank=True, null=True)
+    country = models.CharField(_("Country"), max_length=100, blank=True, null=True)
+    postal_code = models.CharField(_("Postal Code"), max_length=20, blank=True, null=True)
+    
+    # Medical Information
+    blood_type = models.CharField(_("Blood Type"), max_length=5, choices=BLOOD_TYPE_CHOICES, blank=True, null=True)
+    allergies = models.TextField(_("Allergies"), blank=True, null=True)
+    chronic_conditions = models.TextField(_("Chronic Conditions"), blank=True, null=True)
+    
+    # Professional Information
+    nurse_type = models.CharField(_("Nurse Type"), max_length=5, choices=NURSE_TYPE_CHOICES)
+    license_number = models.CharField(_("License Number"), max_length=50, unique=True)
+    license_expiry = models.DateField(_("License Expiry Date"), blank=True, null=True)
+    years_of_experience = models.PositiveIntegerField(
+        _("Years of Experience"), 
+        validators=[MinValueValidator(0), MaxValueValidator(60)],
+        default=0
+    )
+    department = models.CharField(_("Department"), max_length=5, choices=DEPARTMENT_CHOICES)
+    specialization = models.CharField(_("Specialization"), max_length=100, blank=True, null=True)
+    certifications = models.TextField(_("Certifications"), blank=True, null=True)
+    bio = models.TextField(_("Professional Bio"), blank=True, null=True)
+    
+    # Employment Details
+    is_active = models.BooleanField(_("Active Staff"), default=True)
+    joining_date = models.DateField(_("Joining Date"), blank=True, null=True)
+    position = models.CharField(_("Position"), max_length=100, blank=True, null=True)
+    shift_pattern = models.CharField(_("Shift Pattern"), max_length=100, blank=True, null=True)
+    is_charge_nurse = models.BooleanField(_("Charge Nurse"), default=False)
+    
+    # Skills and Competencies
+    is_bcls_certified = models.BooleanField(_("BCLS Certified"), default=False)
+    is_acl_certified = models.BooleanField(_("ACLS Certified"), default=False)
+    is_pals_certified = models.BooleanField(_("PALS Certified"), default=False)
+    additional_skills = models.TextField(_("Additional Skills"), blank=True, null=True)
+    
+    # System Information
+    profile_picture = models.ImageField(
+        _("Profile Picture"), 
+        upload_to='nurses/profile_pictures/', 
+        blank=True, 
+        null=True
+    )
+    signature = models.ImageField(
+        _("Signature"), 
+        upload_to='nurses/signatures/', 
+        blank=True, 
+        null=True
+    )
+    created_at = models.DateTimeField(_("Created At"), auto_now_add=True)
+    updated_at = models.DateTimeField(_("Updated At"), auto_now=True)
+    
+    def __str__(self):
+        return f"Nurse {self.first_name} {self.last_name} ({self.get_nurse_type_display()})"
+    
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name}"
+    
+    @property
+    def age(self):
+        import datetime
+        return datetime.date.today().year - self.date_of_birth.year - (
+            (datetime.date.today().month, datetime.date.today().day) < 
+            (self.date_of_birth.month, self.date_of_birth.day))
+    
+    @property
+    def license_status(self):
+        if not self.license_expiry:
+            return "Unknown"
+        from datetime import date
+        return "Valid" if self.license_expiry >= date.today() else "Expired"
+    
+    class Meta:
+        verbose_name = _("Nurse")
+        verbose_name_plural = _("Nurses")
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['last_name', 'first_name']),
+            models.Index(fields=['nurse_type']),
+            models.Index(fields=['department']),
+            models.Index(fields=['license_number']),
+        ]
+
+        
 class Patient(models.Model):
     GENDER_CHOICES = (
         ('M', 'Male'),

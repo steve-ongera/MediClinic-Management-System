@@ -23,6 +23,11 @@ urlpatterns = [
     path('medicine/<int:pk>/edit/', views.MedicineUpdateView.as_view(), name='medicine-update'),
     path('medicine/<int:pk>/delete/', views.MedicineDeleteView.as_view(), name='medicine-delete'),
     path('medicine/api/<int:pk>/', views.medicine_detail_api, name='medicine_api'),
+
+    #stocks alert
+    path('medicines/', views.MedicineStockListView.as_view(), name='medicine_stock_list'),
+    path('medicines/<int:pk>/', views.MedicineDetailView.as_view(), name='medicine_detail'),
+    path('medicines/low-stock/', views.low_stock_medicines, name='low_stock_medicines'),
     
     # Category URLs
     path('medicine/categories/', views.CategoryListView.as_view(), name='category_list'),

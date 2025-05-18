@@ -143,7 +143,7 @@ def admin_dashboard_view(request):
     # Recent appointments
     recent_appointments = Appointment.objects.select_related(
         'patient', 'doctor'
-    ).order_by('-scheduled_time')[:5]
+    ).order_by('-scheduled_time')[:10]
 
     # Low stock medicines
     low_stock = Medicine.objects.filter(
@@ -803,3 +803,61 @@ def patient_medical_history(request, patient_id):
         'surgeries': surgeries,
     }
     return render(request, 'medical_history/patient_medical_history.html', context)
+
+
+
+from django.shortcuts import render, get_object_or_404
+from django.views.generic import ListView, DetailView
+from .models import Medicine
+from django.db.models import Q
+
+class MedicineStockListView(ListView):
+    model = Medicine
+    template_name = 'medicines/stock_list.html'
+    context_object_name = 'medicines'
+    paginate_by = 20
+
+    def get_queryset(self):
+        # Get all medicines ordered by stock status (lowest first)
+        return Medicine.objects.all().order_by('quantity_in_stock')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        
+        # Categorize medicines by stock level
+        critical = Medicine.objects.filter(quantity_in_stock__lte=F('reorder_level')/2)
+        warning = Medicine.objects.filter(
+            quantity_in_stock__gt=F('reorder_level')/2,
+            quantity_in_stock__lte=F('reorder_level')
+        )
+        sufficient = Medicine.objects.filter(quantity_in_stock__gt=F('reorder_level'))
+        
+        context.update({
+            'critical_count': critical.count(),
+            'warning_count': warning.count(),
+            'sufficient_count': sufficient.count(),
+        })
+        return context
+
+class MedicineDetailView(DetailView):
+    model = Medicine
+    template_name = 'medicines/detail.html'
+    context_object_name = 'medicine'
+
+def low_stock_medicines(request):
+    # Get medicines below or at reorder level
+    medicines = Medicine.objects.filter(
+        quantity_in_stock__lte=F('reorder_level')
+    ).order_by('quantity_in_stock')
+    
+    # Separate into critical (below half reorder) and warning (above half but below reorder)
+    critical = medicines.filter(quantity_in_stock__lte=F('reorder_level')/2)
+    warning = medicines.filter(quantity_in_stock__gt=F('reorder_level')/2)
+    
+    context = {
+        'critical_medicines': critical,
+        'warning_medicines': warning,
+        'critical_count': critical.count(),
+        'warning_count': warning.count(),
+    }
+    return render(request, 'medicines/low_stock.html', context)

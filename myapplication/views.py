@@ -861,3 +861,40 @@ def low_stock_medicines(request):
         'warning_count': warning.count(),
     }
     return render(request, 'medicines/low_stock.html', context)
+
+from django.shortcuts import render, get_object_or_404
+from .models import MedicineCategory, Medicine
+
+def medicine_category_list(request):
+    categories = MedicineCategory.objects.all().order_by('name')
+    
+    # Count medicines in each category
+    for category in categories:
+        category.medicine_count = Medicine.objects.filter(category=category).count()
+    
+    context = {
+        'categories': categories,
+    }
+    return render(request, 'medicines/category_list.html', context)
+
+def medicine_category_detail(request, category_id):
+    category = get_object_or_404(MedicineCategory, pk=category_id)
+    medicines = Medicine.objects.filter(category=category).order_by('name')
+    
+    # Stock status counts
+    critical = medicines.filter(quantity_in_stock__lte=F('reorder_level')/2).count()
+    warning = medicines.filter(
+        quantity_in_stock__gt=F('reorder_level')/2,
+        quantity_in_stock__lte=F('reorder_level')
+    ).count()
+    sufficient = medicines.filter(quantity_in_stock__gt=F('reorder_level')).count()
+    
+    context = {
+        'category': category,
+        'medicines': medicines,
+        'critical_count': critical,
+        'warning_count': warning,
+        'sufficient_count': sufficient,
+        'total_medicines': medicines.count(),
+    }
+    return render(request, 'medicines/category_detail.html', context)

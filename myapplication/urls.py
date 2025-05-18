@@ -28,6 +28,9 @@ urlpatterns = [
     path('medicines/', views.MedicineStockListView.as_view(), name='medicine_stock_list'),
     path('medicines/<int:pk>/', views.MedicineDetailView.as_view(), name='medicine_detail'),
     path('medicines/low-stock/', views.low_stock_medicines, name='low_stock_medicines'),
+
+    path('medicine-categories/', views.medicine_category_list, name='medicine_category_list'),
+    path('medicine-categories/<int:category_id>/', views.medicine_category_detail, name='medicine_category_detail'),
     
     # Category URLs
     path('medicine/categories/', views.CategoryListView.as_view(), name='category_list'),

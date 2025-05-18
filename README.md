@@ -1,5 +1,5 @@
 # MediClinic Management System
-
+![logo](./screenshots/Mediclinic-Management-System-Login-05-18-2025_12_34_PM.png)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Version](https://img.shields.io/badge/version-1.0.0-green.svg)
 

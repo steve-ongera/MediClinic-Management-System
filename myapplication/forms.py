@@ -814,3 +814,4 @@ class PasswordChangeForm(forms.Form):
         self.user.set_password(password)
         self.user.save()
         return self.user
+    

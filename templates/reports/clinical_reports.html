@@ -132,7 +132,7 @@
         <div class="row">
             <!-- Top Diseases Chart - Last 30 Days -->
             <div class="col-md-6">
-                <div class="chart-container">
+                <div class="chart-container" style="position: relative; height: 400px;" >
                     <h4><i class="fas fa-chart-bar me-2"></i>Top Diseases (Last 30 Days)</h4>
                     <canvas id="diseases30DaysChart"></canvas>
                 </div>
@@ -140,7 +140,7 @@
             
             <!-- Monthly Disease Trends Chart -->
             <div class="col-md-6">
-                <div class="chart-container">
+                <div class="chart-container" style="position: relative; height: 400px;">
                     <h4><i class="fas fa-chart-line me-2"></i>Monthly Disease Trends</h4>
                     <canvas id="monthlyDiseasesChart"></canvas>
                 </div>
@@ -186,77 +186,139 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // Top Diseases - Last 30 Days Chart
-        const diseases30DaysCtx = document.getElementById('diseases30DaysChart').getContext('2d');
-        const diseases30DaysChart = new Chart(diseases30DaysCtx, {
-            type: 'bar',
-            data: {
-                labels: JSON.parse('{{ diseases_30days_labels|escapejs }}'),
-                datasets: [{
-                    label: 'Number of Cases',
-                    data: JSON.parse('{{ diseases_30days_counts|escapejs }}'),
-                    backgroundColor: 'rgba(26, 115, 232, 0.7)',
-                    borderColor: 'rgba(26, 115, 232, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Number of Cases'
-                        }
+<script>
+    // Top Diseases - Last 30 Days Chart
+    const diseases30DaysCtx = document.getElementById('diseases30DaysChart').getContext('2d');
+    const diseases30DaysChart = new Chart(diseases30DaysCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ diseases_30days_labels|safe }},
+            datasets: [{
+                label: 'Number of Cases',
+                data: {{ diseases_30days_counts|safe }},
+                backgroundColor: 'rgba(26, 115, 232, 0.7)',
+                borderColor: 'rgba(26, 115, 232, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Cases'
                     },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Disease'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Monthly Disease Trends Chart
-        const monthlyDiseasesCtx = document.getElementById('monthlyDiseasesChart').getContext('2d');
-        const monthlyDiseasesChart = new Chart(monthlyDiseasesCtx, {
-            type: 'line',
-            data: {
-                labels: JSON.parse('{{ monthly_labels|escapejs }}'),
-                datasets: JSON.parse('{{ monthly_datasets|escapejs }}')
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Number of Cases'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Month'
-                        }
+                    ticks: {
+                        stepSize: 1
                     }
                 },
-                plugins: {
-                    legend: {
-                        position: 'right',
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Disease'
                     },
-                    tooltip: {
-                        mode: 'index',
-                        intersect: false,
+                    ticks: {
+                        maxRotation: 45,
+                        minRotation: 0
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            return 'Cases: ' + context.parsed.y;
+                        }
                     }
                 }
             }
-        });
-    </script>
+        }
+    });
+
+    // Monthly Disease Trends Chart
+    const monthlyDiseasesCtx = document.getElementById('monthlyDiseasesChart').getContext('2d');
+    const monthlyDiseasesChart = new Chart(monthlyDiseasesCtx, {
+        type: 'line',
+        data: {
+            labels: {{ monthly_labels|safe }},
+            datasets: {{ monthly_datasets|safe }}
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+                mode: 'index',
+                intersect: false,
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Number of Cases'
+                    },
+                    ticks: {
+                        stepSize: 1
+                    }
+                },
+                x: {
+                    title: {
+                        display: true,
+                        text: 'Month'
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 20
+                    }
+                },
+                tooltip: {
+                    mode: 'index',
+                    intersect: false,
+                    callbacks: {
+                        title: function(context) {
+                            return context[0].label;
+                        },
+                        label: function(context) {
+                            return context.dataset.label + ': ' + context.parsed.y + ' cases';
+                        }
+                    }
+                }
+            },
+            elements: {
+                line: {
+                    tension: 0.1
+                },
+                point: {
+                    radius: 4,
+                    hoverRadius: 6
+                }
+            }
+        }
+    });
+
+    // Add error handling
+    window.addEventListener('error', function(e) {
+        if (e.message.includes('JSON')) {
+            console.error('JSON parsing error. Check your Django view data serialization.');
+            console.error('Error details:', e);
+        }
+    });
+
+    // Optional: Add a function to refresh charts if needed
+    function refreshCharts() {
+        diseases30DaysChart.update();
+        monthlyDiseasesChart.update();
+    }
+</script>
 {% endblock %}

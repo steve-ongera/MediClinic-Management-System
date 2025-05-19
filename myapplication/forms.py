@@ -430,3 +430,387 @@ class DoctorForm(forms.ModelForm):
             if qs.exists():
                 raise forms.ValidationError("A doctor with this email already exists.")
         return email
+    
+
+
+
+
+from django import forms
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
+from .models import User
+
+class UserForm(UserCreationForm):
+    """Form for creating a new user with Bootstrap styling"""
+    
+    first_name = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter first name',
+            'autocomplete': 'given-name'
+        }),
+        help_text='Required. 150 characters or fewer.'
+    )
+    
+    last_name = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter last name',
+            'autocomplete': 'family-name'
+        }),
+        help_text='Required. 150 characters or fewer.'
+    )
+    
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter email address',
+            'autocomplete': 'email'
+        }),
+        help_text='Required. Enter a valid email address.'
+    )
+    
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Choose a username',
+            'autocomplete': 'username'
+        }),
+        help_text='Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'
+    )
+    
+    password1 = forms.CharField(
+        label='Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter password',
+            'autocomplete': 'new-password'
+        }),
+        help_text='Your password must contain at least 8 characters.'
+    )
+    
+    password2 = forms.CharField(
+        label='Confirm Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirm password',
+            'autocomplete': 'new-password'
+        }),
+        help_text='Enter the same password as before, for verification.'
+    )
+    
+    user_type = forms.ChoiceField(
+        choices=User.USER_TYPE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+            'id': 'id_user_type'
+        }),
+        help_text='Select the user role.'
+    )
+    
+    phone_number = forms.CharField(
+        max_length=15,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter phone number',
+            'autocomplete': 'tel'
+        }),
+        help_text='Optional. Enter phone number with country code.'
+    )
+    
+    specialization = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter medical specialization',
+            'id': 'id_specialization'
+        }),
+        help_text='Required for doctors only.'
+    )
+    
+    license_number = forms.CharField(
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter medical license number',
+            'id': 'id_license_number'
+        }),
+        help_text='Required for doctors only.'
+    )
+    
+    is_active = forms.BooleanField(
+        required=False,
+        initial=True,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input',
+            'id': 'id_is_active'
+        }),
+        help_text='Designates whether this user should be treated as active.'
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'first_name', 'last_name', 'email', 'username', 
+            'password1', 'password2', 'user_type', 'phone_number', 
+            'specialization', 'license_number', 'is_active'
+        )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Add Bootstrap classes to inherited fields
+        for field_name in self.fields:
+            field = self.fields[field_name]
+            if 'class' not in field.widget.attrs:
+                if isinstance(field.widget, forms.CheckboxInput):
+                    field.widget.attrs['class'] = 'form-check-input'
+                elif isinstance(field.widget, forms.Select):
+                    field.widget.attrs['class'] = 'form-select'
+                else:
+                    field.widget.attrs['class'] = 'form-control'
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise ValidationError('A user with this email already exists.')
+        return email
+
+    def clean(self):
+        cleaned_data = super().clean()
+        user_type = cleaned_data.get('user_type')
+        specialization = cleaned_data.get('specialization')
+        license_number = cleaned_data.get('license_number')
+
+        # Validation for doctor fields
+        if user_type == 'DOCTOR':
+            if not specialization:
+                self.add_error('specialization', 'Specialization is required for doctors.')
+            if not license_number:
+                self.add_error('license_number', 'License number is required for doctors.')
+        
+        return cleaned_data
+
+
+class UserEditForm(forms.ModelForm):
+    """Form for editing existing user with Bootstrap styling"""
+    
+    first_name = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter first name',
+            'autocomplete': 'given-name'
+        }),
+        help_text='Required. 150 characters or fewer.'
+    )
+    
+    last_name = forms.CharField(
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter last name',
+            'autocomplete': 'family-name'
+        }),
+        help_text='Required. 150 characters or fewer.'
+    )
+    
+    email = forms.EmailField(
+        required=True,
+        widget=forms.EmailInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter email address',
+            'autocomplete': 'email'
+        }),
+        help_text='Required. Enter a valid email address.'
+    )
+    
+    username = forms.CharField(
+        max_length=150,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Username',
+            'autocomplete': 'username'
+        }),
+        help_text='Required. 150 characters or fewer. Letters, digits and @/./+/-/_ only.'
+    )
+    
+    user_type = forms.ChoiceField(
+        choices=User.USER_TYPE_CHOICES,
+        required=True,
+        widget=forms.Select(attrs={
+            'class': 'form-select',
+            'id': 'id_user_type'
+        }),
+        help_text='Select the user role.'
+    )
+    
+    phone_number = forms.CharField(
+        max_length=15,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter phone number',
+            'autocomplete': 'tel'
+        }),
+        help_text='Optional. Enter phone number with country code.'
+    )
+    
+    specialization = forms.CharField(
+        max_length=100,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter medical specialization',
+            'id': 'id_specialization'
+        }),
+        help_text='Required for doctors only.'
+    )
+    
+    license_number = forms.CharField(
+        max_length=50,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter medical license number',
+            'id': 'id_license_number'
+        }),
+        help_text='Required for doctors only.'
+    )
+    
+    is_active = forms.BooleanField(
+        required=False,
+        widget=forms.CheckboxInput(attrs={
+            'class': 'form-check-input',
+            'id': 'id_is_active'
+        }),
+        help_text='Designates whether this user should be treated as active.'
+    )
+
+    class Meta:
+        model = User
+        fields = (
+            'first_name', 'last_name', 'email', 'username', 
+            'user_type', 'phone_number', 'specialization', 
+            'license_number', 'is_active'
+        )
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.get('instance')
+        super().__init__(*args, **kwargs)
+        
+        # Add Bootstrap classes to all fields
+        for field_name in self.fields:
+            field = self.fields[field_name]
+            if 'class' not in field.widget.attrs:
+                if isinstance(field.widget, forms.CheckboxInput):
+                    field.widget.attrs['class'] = 'form-check-input'
+                elif isinstance(field.widget, forms.Select):
+                    field.widget.attrs['class'] = 'form-select'
+                else:
+                    field.widget.attrs['class'] = 'form-control'
+
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if self.user and self.user.email == email:
+            return email
+        if User.objects.filter(email=email).exists():
+            raise ValidationError('A user with this email already exists.')
+        return email
+
+    def clean_username(self):
+        username = self.cleaned_data.get('username')
+        if self.user and self.user.username == username:
+            return username
+        if User.objects.filter(username=username).exists():
+            raise ValidationError('A user with this username already exists.')
+        return username
+
+    def clean(self):
+        cleaned_data = super().clean()
+        user_type = cleaned_data.get('user_type')
+        specialization = cleaned_data.get('specialization')
+        license_number = cleaned_data.get('license_number')
+
+        # Validation for doctor fields
+        if user_type == 'DOCTOR':
+            if not specialization:
+                self.add_error('specialization', 'Specialization is required for doctors.')
+            if not license_number:
+                self.add_error('license_number', 'License number is required for doctors.')
+        
+        return cleaned_data
+
+
+class PasswordChangeForm(forms.Form):
+    """Bootstrap-styled password change form"""
+    
+    old_password = forms.CharField(
+        label='Current Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter current password',
+            'autocomplete': 'current-password'
+        }),
+        help_text='Enter your current password.'
+    )
+    
+    new_password1 = forms.CharField(
+        label='New Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Enter new password',
+            'autocomplete': 'new-password'
+        }),
+        help_text='Your password must contain at least 8 characters.',
+        validators=[validate_password]
+    )
+    
+    new_password2 = forms.CharField(
+        label='Confirm New Password',
+        widget=forms.PasswordInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Confirm new password',
+            'autocomplete': 'new-password'
+        }),
+        help_text='Enter the same password as before, for verification.'
+    )
+
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super().__init__(*args, **kwargs)
+
+    def clean_old_password(self):
+        old_password = self.cleaned_data.get('old_password')
+        if not self.user.check_password(old_password):
+            raise ValidationError('Your old password was entered incorrectly.')
+        return old_password
+
+    def clean(self):
+        cleaned_data = super().clean()
+        new_password1 = cleaned_data.get('new_password1')
+        new_password2 = cleaned_data.get('new_password2')
+
+        if new_password1 and new_password2:
+            if new_password1 != new_password2:
+                self.add_error('new_password2', 'The two password fields didn\'t match.')
+
+        return cleaned_data
+
+    def save(self):
+        password = self.cleaned_data['new_password1']
+        self.user.set_password(password)
+        self.user.save()
+        return self.user

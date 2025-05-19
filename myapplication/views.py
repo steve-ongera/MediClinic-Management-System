@@ -1298,3 +1298,101 @@ def inventory_reports(request):
     }
     
     return render(request, 'reports/inventory_reports.html', context)
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib import messages
+from django.db.models import Q
+from .models import User
+from .forms import UserForm, UserEditForm
+
+@login_required
+@permission_required('auth.view_user', raise_exception=True)
+def user_management(request):
+    # Search functionality
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    user_type_filter = request.GET.get('user_type', '')
+    
+    users = User.objects.all()
+    
+    if search_query:
+        users = users.filter(
+            Q(username__icontains=search_query) |
+            Q(first_name__icontains=search_query) |
+            Q(last_name__icontains=search_query) |
+            Q(email__icontains=search_query)
+        )
+    
+    if status_filter:
+        users = users.filter(is_active=status_filter == 'active')
+    
+    if user_type_filter:
+        users = users.filter(user_type=user_type_filter)
+    
+    # Sort by last name
+    users = users.order_by('last_name', 'first_name')
+    
+    context = {
+        'users': users,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'user_type_filter': user_type_filter,
+        'user_types': User.USER_TYPE_CHOICES,
+        'now': timezone.now(),
+    }
+    
+    return render(request, 'user_management/user_list.html', context)
+
+@login_required
+@permission_required('auth.add_user', raise_exception=True)
+def user_create(request):
+    if request.method == 'POST':
+        form = UserForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'User {user.username} created successfully!')
+            return redirect('user_management')
+    else:
+        form = UserForm()
+    
+    return render(request, 'user_management/user_form.html', {
+        'form': form,
+        'title': 'Create New User'
+    })
+
+@login_required
+@permission_required('auth.change_user', raise_exception=True)
+def user_edit(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    
+    if request.method == 'POST':
+        form = UserEditForm(request.POST, instance=user)
+        if form.is_valid():
+            user = form.save()
+            messages.success(request, f'User {user.username} updated successfully!')
+            return redirect('user_management')
+    else:
+        form = UserEditForm(instance=user)
+    
+    return render(request, 'user_management/user_form.html', {
+        'form': form,
+        'title': f'Edit User: {user.username}',
+        'user': user
+    })
+
+@login_required
+@permission_required('auth.delete_user', raise_exception=True)
+def user_delete(request, pk):
+    user = get_object_or_404(User, pk=pk)
+    
+    if request.method == 'POST':
+        username = user.username
+        user.delete()
+        messages.success(request, f'User {username} deleted successfully!')
+        return redirect('user_management')
+    
+    return render(request, 'user_management/user_confirm_delete.html', {
+        'user': user
+    })

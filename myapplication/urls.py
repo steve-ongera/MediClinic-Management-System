@@ -66,4 +66,9 @@ urlpatterns = [
     path('reports/clinical/', views.clinical_reports, name='clinical_reports'),
     path('reports/inventory/', views.inventory_reports, name='inventory_reports'),
 
+    path('users/', views.user_management, name='user_management'),
+    path('users/create/', views.user_create, name='user_create'),
+    path('users/<int:pk>/edit/', views.user_edit, name='user_edit'),
+    path('users/<int:pk>/delete/', views.user_delete, name='user_delete'),
+
 ]

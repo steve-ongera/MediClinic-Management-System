@@ -1442,3 +1442,303 @@ def user_delete(request, pk):
     return render(request, 'user_management/user_confirm_delete.html', {
         'user': user
     })
+
+
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.db.models import Count, Sum, Q, Avg
+from django.utils import timezone
+from datetime import datetime, timedelta, date
+import calendar
+from .models import Doctor, Appointment, DoctorSchedule, DoctorLeave, WorkloadSummary
+
+def doctor_calendar_view(request):
+    """Main calendar view for doctors"""
+    # Get all doctors for the filter dropdown
+    doctors = Doctor.objects.filter(is_active=True)
+    
+    # Get selected doctor (default to first doctor or logged-in doctor)
+    selected_doctor_id = request.GET.get('doctor_id')
+    if selected_doctor_id:
+        selected_doctor = get_object_or_404(Doctor, id=selected_doctor_id)
+    else:
+        # If user is a doctor, show their calendar, otherwise show first doctor
+        try:
+            selected_doctor = request.user.doctor
+        except:
+            selected_doctor = doctors.first() if doctors.exists() else None
+    
+    # Get selected month and year
+    current_date = timezone.now().date()
+    selected_month = int(request.GET.get('month', current_date.month))
+    selected_year = int(request.GET.get('year', current_date.year))
+    
+    # Generate calendar data
+    calendar_data = generate_calendar_data(selected_doctor, selected_year, selected_month)
+    
+    context = {
+        'doctors': doctors,
+        'selected_doctor': selected_doctor,
+        'calendar_data': calendar_data,
+        'selected_month': selected_month,
+        'selected_year': selected_year,
+        'month_name': calendar.month_name[selected_month],
+        'current_date': current_date,
+        'prev_month': get_prev_month(selected_year, selected_month),
+        'next_month': get_next_month(selected_year, selected_month),
+    }
+    
+    return render(request, 'calendar/doctor_calendar.html', context)
+
+def generate_calendar_data(doctor, year, month):
+    """Generate calendar data with workload information"""
+    if not doctor:
+        return []
+    
+    # Get first and last day of the month
+    first_day = date(year, month, 1)
+    last_day = date(year, month, calendar.monthrange(year, month)[1])
+    
+    # Get all appointments for the doctor in this month
+    appointments = Appointment.objects.filter(
+        doctor=doctor,
+        appointment_date__date__range=[first_day, last_day]
+    ).select_related('patient')
+    
+    # Get doctor's leaves
+    leaves = DoctorLeave.objects.filter(
+        doctor=doctor,
+        start_date__lte=last_day,
+        end_date__gte=first_day,
+        approved=True
+    )
+    
+    # Generate calendar days
+    cal = calendar.monthcalendar(year, month)
+    calendar_weeks = []
+    
+    for week in cal:
+        calendar_week = []
+        for day in week:
+            if day == 0:
+                calendar_week.append(None)
+            else:
+                day_date = date(year, month, day)
+                
+                # Get appointments for this day
+                day_appointments = [apt for apt in appointments if apt.appointment_date.date() == day_date]
+                
+                # Check if doctor is on leave
+                is_on_leave = any(leave.start_date <= day_date <= leave.end_date for leave in leaves)
+                
+                # Calculate workload
+                workload_info = calculate_day_workload(doctor, day_date, day_appointments)
+                
+                day_data = {
+                    'day': day,
+                    'date': day_date,
+                    'appointments': day_appointments,
+                    'appointment_count': len(day_appointments),
+                    'is_on_leave': is_on_leave,
+                    'workload_percentage': workload_info['workload_percentage'],
+                    'workload_level': workload_info['workload_level'],
+                    'total_hours': workload_info['total_hours'],
+                    'is_today': day_date == timezone.now().date(),
+                    'is_weekend': day_date.weekday() >= 5,
+                }
+                calendar_week.append(day_data)
+        calendar_weeks.append(calendar_week)
+    
+    return calendar_weeks
+
+def calculate_day_workload(doctor, day_date, appointments):
+    """Calculate workload for a specific day"""
+    # Get doctor's schedule for this day
+    day_of_week = day_date.weekday()
+    schedules = DoctorSchedule.objects.filter(
+        doctor=doctor,
+        day_of_week=day_of_week,
+        is_active=True
+    )
+    
+    if not schedules.exists():
+        return {
+            'workload_percentage': 0,
+            'workload_level': 'none',
+            'total_hours': 0
+        }
+    
+    # Calculate total scheduled hours
+    total_scheduled_minutes = 0
+    max_patients = 0
+    for schedule in schedules:
+        # Convert times to minutes for calculation
+        start_minutes = schedule.start_time.hour * 60 + schedule.start_time.minute
+        end_minutes = schedule.end_time.hour * 60 + schedule.end_time.minute
+        total_scheduled_minutes += (end_minutes - start_minutes)
+        max_patients += schedule.max_patients
+    
+    # Calculate actual workload
+    total_appointment_minutes = sum(apt.duration for apt in appointments)
+    
+    # Calculate workload percentage
+    if total_scheduled_minutes > 0:
+        workload_percentage = min(100, (total_appointment_minutes / total_scheduled_minutes) * 100)
+    else:
+        workload_percentage = 0
+    
+    # Determine workload level
+    if workload_percentage == 0:
+        workload_level = 'none'
+    elif workload_percentage <= 25:
+        workload_level = 'light'
+    elif workload_percentage <= 50:
+        workload_level = 'moderate'
+    elif workload_percentage <= 75:
+        workload_level = 'heavy'
+    else:
+        workload_level = 'overloaded'
+    
+    return {
+        'workload_percentage': round(workload_percentage, 1),
+        'workload_level': workload_level,
+        'total_hours': round(total_scheduled_minutes / 60, 1)
+    }
+
+def get_prev_month(year, month):
+    """Get previous month and year"""
+    if month == 1:
+        return {'year': year - 1, 'month': 12}
+    return {'year': year, 'month': month - 1}
+
+def get_next_month(year, month):
+    """Get next month and year"""
+    if month == 12:
+        return {'year': year + 1, 'month': 1}
+    return {'year': year, 'month': month + 1}
+
+def doctor_day_detail_ajax(request, doctor_id, date_str):
+    """Ajax view to get detailed information for a specific day"""
+    try:
+        doctor = get_object_or_404(Doctor, id=doctor_id)
+        selected_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+        
+        # Get appointments for the day
+        appointments = Appointment.objects.filter(
+            doctor=doctor,
+            appointment_date__date=selected_date
+        ).select_related('patient').order_by('appointment_date')
+        
+        # Get doctor's schedule for this day
+        day_of_week = selected_date.weekday()
+        schedules = DoctorSchedule.objects.filter(
+            doctor=doctor,
+            day_of_week=day_of_week,
+            is_active=True
+        )
+        
+        # Check if doctor is on leave
+        is_on_leave = DoctorLeave.objects.filter(
+            doctor=doctor,
+            start_date__lte=selected_date,
+            end_date__gte=selected_date,
+            approved=True
+        ).exists()
+        
+        # Prepare appointment data
+        appointment_data = []
+        for apt in appointments:
+            appointment_data.append({
+                'id': apt.id,
+                'patient_name': f"{apt.patient.first_name} {apt.patient.last_name}",
+                'time': apt.appointment_date.strftime('%H:%M'),
+                'duration': apt.duration,
+                'type': apt.get_appointment_type_display(),
+                'status': apt.get_status_display(),
+                'reason': apt.reason,
+                'end_time': apt.end_time.strftime('%H:%M'),
+            })
+        
+        # Prepare schedule data
+        schedule_data = []
+        for schedule in schedules:
+            schedule_data.append({
+                'start_time': schedule.start_time.strftime('%H:%M'),
+                'end_time': schedule.end_time.strftime('%H:%M'),
+                'max_patients': schedule.max_patients,
+            })
+        
+        # Calculate workload
+        workload_info = calculate_day_workload(doctor, selected_date, appointments)
+        
+        return JsonResponse({
+            'success': True,
+            'date': selected_date.strftime('%Y-%m-%d'),
+            'doctor_name': str(doctor),
+            'appointments': appointment_data,
+            'schedules': schedule_data,
+            'is_on_leave': is_on_leave,
+            'workload_info': workload_info,
+            'appointment_count': len(appointments),
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })
+
+def doctor_workload_analytics(request):
+    """View for workload analytics and reports"""
+    # Get all doctors
+    doctors = Doctor.objects.filter(is_active=True)
+    
+    # Get date range (default to current month)
+    current_date = timezone.now().date()
+    start_date = request.GET.get('start_date', current_date.replace(day=1))
+    end_date = request.GET.get('end_date', current_date)
+    
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+    if isinstance(end_date, str):
+        end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+    
+    # Generate analytics data
+    analytics_data = []
+    for doctor in doctors:
+        # Get appointments in date range
+        appointments = Appointment.objects.filter(
+            doctor=doctor,
+            appointment_date__date__range=[start_date, end_date]
+        )
+        
+        # Calculate metrics
+        total_appointments = appointments.count()
+        completed_appointments = appointments.filter(status='completed').count()
+        avg_daily_appointments = total_appointments / max(1, (end_date - start_date).days + 1)
+        
+        # Get busiest day
+        busiest_day_data = appointments.extra(
+            select={'day': 'date(appointment_date)'}
+        ).values('day').annotate(
+            count=Count('id')
+        ).order_by('-count').first()
+        
+        analytics_data.append({
+            'doctor': doctor,
+            'total_appointments': total_appointments,
+            'completed_appointments': completed_appointments,
+            'avg_daily_appointments': round(avg_daily_appointments, 1),
+            'busiest_day': busiest_day_data['day'] if busiest_day_data else None,
+            'busiest_day_count': busiest_day_data['count'] if busiest_day_data else 0,
+        })
+    
+    context = {
+        'doctors': doctors,
+        'analytics_data': analytics_data,
+        'start_date': start_date,
+        'end_date': end_date,
+        'date_range_days': (end_date - start_date).days + 1,
+    }
+    
+    return render(request, 'calendar/workload_analytics.html', context)

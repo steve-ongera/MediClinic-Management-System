@@ -535,3 +535,23 @@ class DoctorLeave(models.Model):
     
     def __str__(self):
         return f"{self.doctor} - {self.leave_type} ({self.start_date} to {self.end_date})"
+    
+
+
+class WorkloadSummary(models.Model):
+    """Daily workload summary for doctors"""
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    date = models.DateField()
+    total_appointments = models.IntegerField(default=0)
+    completed_appointments = models.IntegerField(default=0)
+    cancelled_appointments = models.IntegerField(default=0)
+    total_hours_worked = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    workload_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ['doctor', 'date']
+    
+    def __str__(self):
+        return f"{self.doctor} - {self.date} ({self.workload_percentage}% workload)"

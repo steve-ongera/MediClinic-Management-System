@@ -1031,3 +1031,80 @@ def doctor_delete(request, pk):
     }
     
     return render(request, 'doctors/doctor_confirm_delete.html', context)
+
+
+from django.shortcuts import render
+from django.db.models import Sum, Count, Q
+from django.utils import timezone
+from datetime import timedelta
+import json
+from .models import MedicineSale, SoldMedicine, Medicine
+
+def financial_reports(request):
+    # Time periods
+    end_date = timezone.now()
+    start_date_30d = end_date - timedelta(days=30)
+    start_date_12m = end_date - timedelta(days=365)
+    
+    # 1. Revenue by Day (last 30 days)
+    daily_sales = MedicineSale.objects.filter(
+        sale_date__gte=start_date_30d
+    ).extra({
+        'date': "date(sale_date)"
+    }).values('date').annotate(
+        total=Sum('total_amount')
+    ).order_by('date')
+    
+    days = [item['date'] for item in daily_sales]
+    daily_revenue = [float(item['total']) for item in daily_sales]
+    
+    # 2. Revenue by Month (last 12 months) - Fixed SQLite version
+    monthly_sales = MedicineSale.objects.filter(
+        sale_date__gte=start_date_12m
+    ).extra({
+        'month': "strftime('%%Y-%%m', sale_date)"
+    }).values('month').annotate(
+        total=Sum('total_amount')
+    ).order_by('month')
+    
+    months = [item['month'] for item in monthly_sales]
+    monthly_revenue = [float(item['total']) for item in monthly_sales]
+    
+    # 3. Payment Method Distribution
+    payment_methods = MedicineSale.objects.values('payment_method').annotate(
+        count=Count('id'),
+        total=Sum('total_amount')
+    ).order_by('-total')
+    
+    payment_labels = [item['payment_method'] for item in payment_methods]
+    payment_counts = [item['count'] for item in payment_methods]
+    payment_amounts = [float(item['total']) for item in payment_methods]
+    
+    # 4. Top Selling Medicines (for table)
+    top_medicines = SoldMedicine.objects.values(
+        'medicine__name'
+    ).annotate(
+        total_quantity=Sum('quantity'),
+        total_revenue=Sum('unit_price')
+    ).order_by('-total_revenue')[:10]
+    
+    # 5. Financial Summary
+    total_revenue = MedicineSale.objects.aggregate(Sum('total_amount'))['total_amount__sum'] or 0
+    total_sales = MedicineSale.objects.count()
+    avg_sale_value = total_revenue / total_sales if total_sales > 0 else 0
+    
+    context = {
+        'days': json.dumps(days),
+        'daily_revenue': json.dumps(daily_revenue),
+        'months': json.dumps(months),
+        'monthly_revenue': json.dumps(monthly_revenue),
+        'payment_labels': json.dumps(payment_labels),
+        'payment_counts': json.dumps(payment_counts),
+        'payment_amounts': json.dumps(payment_amounts),
+        'top_medicines': top_medicines,
+        'total_revenue': total_revenue,
+        'total_sales': total_sales,
+        'avg_sale_value': avg_sale_value,
+    }
+    
+    return render(request, 'reports/financial_reports.html', context)

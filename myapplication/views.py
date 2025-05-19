@@ -382,6 +382,28 @@ def get_medicine_detail(request, pk):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
+def update_medicine_ajax(request, pk):
+    if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        try:
+            data = json.loads(request.body)
+            medicine = Medicine.objects.get(pk=pk)
+
+            # Update fields
+            medicine.name = data.get('name', medicine.name)
+            medicine.price = data.get('price', medicine.price)
+            medicine.description = data.get('description', medicine.description)
+            medicine.save()
+
+            return JsonResponse({'success': True, 'message': 'Medicine updated successfully.'})
+        except Medicine.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Medicine not found.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'success': False, 'message': str(e)}, status=500)
+
+    return JsonResponse({'success': False, 'message': 'Invalid request.'}, status=400)
+
+
+
 class MedicineDetailView(LoginRequiredMixin, DetailView):
     """View for displaying details of a single medicine"""
     model = Medicine

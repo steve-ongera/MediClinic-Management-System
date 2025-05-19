@@ -163,6 +163,65 @@
     </div>
 </div>
 
+<!-- Edit Medicine Modal -->
+<div class="modal fade" id="editMedicineModal" tabindex="-1" aria-labelledby="editMedicineModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #0d6efd; color: white;">
+                <h5 class="modal-title" id="editMedicineModalLabel">Edit Medicine</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editMedicineForm">
+                <div class="modal-body">
+                    <input type="hidden" id="editMedicineId" name="id">
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editMedicineName" class="form-label">Name</label>
+                            <input type="text" class="form-control" id="editMedicineName" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editMedicineManufacturer" class="form-label">Manufacturer</label>
+                            <input type="text" class="form-control" id="editMedicineManufacturer" name="manufacturer">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editMedicineBatch" class="form-label">Batch Number</label>
+                            <input type="text" class="form-control" id="editMedicineBatch" name="batch_number">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editMedicineExpiry" class="form-label">Expiry Date</label>
+                            <input type="date" class="form-control" id="editMedicineExpiry" name="expiry_date">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editMedicineQuantity" class="form-label">Stock Quantity</label>
+                            <input type="number" class="form-control" id="editMedicineQuantity" name="quantity" min="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editMedicineReorder" class="form-label">Reorder Level</label>
+                            <input type="number" class="form-control" id="editMedicineReorder" name="reorder_level" min="0">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editMedicinePrice" class="form-label">Unit Price</label>
+                            <input type="number" class="form-control" id="editMedicinePrice" name="price" min="0" step="0.01">
+                        </div>
+                        <div class="col-md-12 mb-3">
+                            <label for="editMedicineDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="editMedicineDescription" name="description" rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Medicine</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
 <!-- Medicine Detail Modal -->
 <div class="modal fade" id="medicineDetailModal" tabindex="-1" aria-labelledby="medicineDetailModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -274,9 +333,10 @@
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
 <!-- Select2 for better dropdowns -->
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
 <script>
-document.addEventListener("DOMContentLoaded", function () {
+
+    document.addEventListener("DOMContentLoaded", function () {
+    // Handle medicine detail modal
     const detailButtons = document.querySelectorAll('.view-medicine');
     
     detailButtons.forEach(button => {
@@ -295,14 +355,15 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 // Update modal with data
                 document.getElementById('medicineDetailName').innerText = data.name;
-                document.getElementById('medicineDetailCategory').innerText = data.category;
-                document.getElementById('medicineDetailManufacturer').innerText = data.manufacturer;
-                document.getElementById('medicineDetailBatch').innerText = data.batch_number;
-                document.getElementById('medicineDetailExpiry').innerText = data.expiry_date;
-                document.getElementById('medicineDetailQuantity').innerText = data.quantity_in_stock;
-                document.getElementById('medicineDetailReorder').innerText = data.reorder_level;
-                document.getElementById('medicineDetailPrice').innerText = `KSh ${data.unit_price}`;
-                document.getElementById('medicineDetailUpdated').innerText = data.last_updated;
+                document.getElementById('medicineDetailCategory').innerText = data.category || 'No category';
+                document.getElementById('medicineDetailManufacturer').innerText = data.manufacturer || 'N/A';
+                document.getElementById('medicineDetailBatch').innerText = data.batch_number || 'N/A';
+                document.getElementById('medicineDetailExpiry').innerText = data.expiry_date || 'N/A';
+                document.getElementById('medicineDetailQuantity').innerText = data.quantity_in_stock || data.quantity || '0';
+                document.getElementById('medicineDetailReorder').innerText = data.reorder_level || 'N/A';
+                document.getElementById('medicineDetailPrice').innerText = `KSh ${data.unit_price || data.price || '0'}`;
+                document.getElementById('medicineDetailUpdated').innerText = data.last_updated || 'N/A';
+                document.getElementById('medicineDetailDescription').innerText = data.description || 'No description available';
 
                 // Handle image display
                 const img = document.getElementById('medicineDetailImage');
@@ -315,6 +376,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     img.style.display = 'none';
                     defaultIcon.style.display = 'block';
                 }
+
+                // Set the medicine ID for the edit button in the detail modal
+                const editFromDetailBtn = document.querySelector('.edit-from-detail');
+                editFromDetailBtn.setAttribute('data-id', medicineId);
             })
             .catch(error => {
                 console.error(error);
@@ -322,7 +387,135 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         });
     });
+
+    // Handle edit buttons from the medicine cards
+    const editButtons = document.querySelectorAll('.edit-medicine');
+    
+    editButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const medicineId = this.dataset.id;
+            loadMedicineForEdit(medicineId);
+        });
+    });
+
+    // Handle edit button from detail modal
+    const editFromDetailBtn = document.querySelector('.edit-from-detail');
+    if (editFromDetailBtn) {
+        editFromDetailBtn.addEventListener('click', function () {
+            const medicineId = this.getAttribute('data-id');
+            if (medicineId) {
+                // Close the detail modal first
+                const detailModal = bootstrap.Modal.getInstance(document.getElementById('medicineDetailModal'));
+                if (detailModal) {
+                    detailModal.hide();
+                }
+                
+                // Small delay to ensure modal is closed before opening edit modal
+                setTimeout(() => {
+                    loadMedicineForEdit(medicineId);
+                }, 300);
+            }
+        });
+    }
+
+    // Function to load medicine data and show edit modal
+    function loadMedicineForEdit(medicineId) {
+        fetch(`/ajax/medicine/${medicineId}/`, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Failed to fetch data");
+            return response.json();
+        })
+        .then(data => {
+            // Fill the edit form with data
+            document.getElementById('editMedicineId').value = data.id;
+            document.getElementById('editMedicineName').value = data.name || '';
+            document.getElementById('editMedicineManufacturer').value = data.manufacturer || '';
+            document.getElementById('editMedicineBatch').value = data.batch_number || '';
+            document.getElementById('editMedicineExpiry').value = data.expiry_date || '';
+            document.getElementById('editMedicineQuantity').value = data.quantity_in_stock || data.quantity || '';
+            document.getElementById('editMedicineReorder').value = data.reorder_level || '';
+            document.getElementById('editMedicinePrice').value = data.unit_price || data.price || '';
+            document.getElementById('editMedicineDescription').value = data.description || '';
+
+            // Show the edit modal
+            const editModal = new bootstrap.Modal(document.getElementById('editMedicineModal'));
+            editModal.show();
+        })
+        .catch(error => {
+            console.error('Error loading medicine data:', error);
+            alert("Could not load medicine data for editing.");
+        });
+    }
+
+    // Handle edit form submission
+    const editForm = document.getElementById('editMedicineForm');
+    if (editForm) {
+        editForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const medicineId = document.getElementById('editMedicineId').value;
+            //ajax/update-medicine/
+
+            fetch(`/ajax/update-medicine/${medicineId}/`, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Failed to update medicine");
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Close the modal
+                    const editModal = bootstrap.Modal.getInstance(document.getElementById('editMedicineModal'));
+                    editModal.hide();
+                    
+                    // Show success message
+                    alert("Medicine updated successfully!");
+                    
+                    // Reload the page to show updated data
+                    window.location.reload();
+                } else {
+                    alert("Error updating medicine: " + (data.message || "Unknown error"));
+                }
+            })
+            .catch(error => {
+                console.error('Error updating medicine:', error);
+                alert("Could not update medicine. Please try again.");
+            });
+        });
+    }
+
+    // Search functionality
+    const searchInput = document.getElementById('medicineSearch');
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            const searchTerm = this.value.toLowerCase();
+            const medicineCards = document.querySelectorAll('.medicine-card');
+            
+            medicineCards.forEach(card => {
+                const medicineName = card.querySelector('.card-title').textContent.toLowerCase();
+                const category = card.querySelector('.text-muted').textContent.toLowerCase();
+                
+                if (medicineName.includes(searchTerm) || category.includes(searchTerm)) {
+                    card.closest('.col').style.display = 'block';
+                } else {
+                    card.closest('.col').style.display = 'none';
+                }
+            });
+        });
+    }
 });
+
 </script>
 
 

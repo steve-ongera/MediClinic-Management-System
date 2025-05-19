@@ -1108,3 +1108,97 @@ def financial_reports(request):
     }
     
     return render(request, 'reports/financial_reports.html', context)
+
+
+
+from django.shortcuts import render
+from django.db.models import Count
+from django.utils import timezone
+from datetime import timedelta
+from .models import Consultation, Disease
+
+def clinical_reports(request):
+    # Date ranges
+    end_date = timezone.now().date()
+    start_date_30days = end_date - timedelta(days=30)
+    start_date_12months = end_date - timedelta(days=365)
+    
+    # Top diseases - last 30 days
+    recent_consultations = Consultation.objects.filter(
+        created_at__date__gte=start_date_30days
+    )
+    
+    top_diseases_30days = (
+        Disease.objects.filter(consultation__in=recent_consultations)
+        .annotate(count=Count('consultation'))
+        .order_by('-count')[:10]
+    )
+    
+    # Monthly disease trends - last 12 months
+    monthly_disease_data = (
+        Consultation.objects.filter(created_at__date__gte=start_date_12months)
+        .values('diseases__name', month=models.functions.TruncMonth('created_at'))
+        .annotate(count=Count('diseases'))
+        .order_by('month', 'diseases__name')
+    )
+    
+    # Prepare data for charts
+    diseases_30days_labels = [d.name for d in top_diseases_30days]
+    diseases_30days_counts = [d.count for d in top_diseases_30days]
+    
+    # Prepare monthly data
+    monthly_labels = []
+    monthly_datasets = {}
+    
+    for entry in monthly_disease_data:
+        month = entry['month'].strftime("%b %Y")
+        disease = entry['diseases__name']
+        count = entry['count']
+        
+        if month not in monthly_labels:
+            monthly_labels.append(month)
+        
+        if disease not in monthly_datasets:
+            monthly_datasets[disease] = {
+                'label': disease,
+                'data': [],
+                'borderColor': get_random_color(),
+                'backgroundColor': get_random_color(0.2),
+                'borderWidth': 2
+            }
+        
+        monthly_datasets[disease]['data'].append(count)
+    
+    # Fill in missing months with 0 for each disease
+    for disease in monthly_datasets.values():
+        if len(disease['data']) < len(monthly_labels):
+            disease['data'] = [0] * (len(monthly_labels) - len(disease['data'])) + disease['data']
+    
+    context = {
+        'top_diseases_30days': zip(diseases_30days_labels, diseases_30days_counts),
+        'diseases_30days_labels': diseases_30days_labels,
+        'diseases_30days_counts': diseases_30days_counts,
+        'monthly_labels': monthly_labels,
+        'monthly_datasets': list(monthly_datasets.values()),
+        'report_date': end_date.strftime("%B %d, %Y"),
+        'start_date_30days': start_date_30days.strftime("%B %d, %Y"),
+        'start_date_12months': start_date_12months.strftime("%B %Y"),
+    }
+    
+    return render(request, 'reports/clinical_reports.html', context)
+
+def get_random_color(opacity=1):
+    import random
+    colors = [
+        f'rgba(54, 162, 235, {opacity})',  # Blue
+        f'rgba(255, 99, 132, {opacity})',   # Red
+        f'rgba(75, 192, 192, {opacity})',    # Teal
+        f'rgba(255, 159, 64, {opacity})',    # Orange
+        f'rgba(153, 102, 255, {opacity})',   # Purple
+        f'rgba(255, 205, 86, {opacity})',    # Yellow
+        f'rgba(201, 203, 207, {opacity})',   # Gray
+        f'rgba(0, 128, 0, {opacity})',       # Green
+        f'rgba(128, 0, 0, {opacity})',       # Maroon
+        f'rgba(0, 0, 128, {opacity})',       # Navy
+    ]
+    return random.choice(colors)

@@ -514,3 +514,24 @@ class DoctorSchedule(models.Model):
     
     def __str__(self):
         return f"{self.doctor} - {self.get_day_of_week_display()} {self.start_time}-{self.end_time}"
+    
+
+class DoctorLeave(models.Model):
+    LEAVE_TYPE = [
+        ('sick', 'Sick Leave'),
+        ('vacation', 'Vacation'),
+        ('conference', 'Conference'),
+        ('emergency', 'Emergency'),
+        ('other', 'Other'),
+    ]
+    
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    leave_type = models.CharField(max_length=20, choices=LEAVE_TYPE)
+    reason = models.TextField(blank=True)
+    approved = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.doctor} - {self.leave_type} ({self.start_date} to {self.end_date})"

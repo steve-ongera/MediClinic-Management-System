@@ -1206,10 +1206,11 @@ def get_random_color(opacity=1):
 
 
 from django.shortcuts import render
-from django.db.models import Sum, F, ExpressionWrapper, FloatField
+from django.db.models import Sum, F, ExpressionWrapper, FloatField, Count
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from datetime import timedelta
+import json
 from .models import Medicine, MedicineCategory, SoldMedicine
 
 def inventory_reports(request):
@@ -1243,7 +1244,10 @@ def inventory_reports(request):
         .values('medicine__name', 'medicine__category__name')
         .annotate(
             total_sold=Coalesce(Sum('quantity'), 0),
-            total_revenue=Coalesce(Sum(F('quantity') * F('unit_price')), 0)
+            total_revenue=ExpressionWrapper(
+                Coalesce(Sum(F('quantity') * F('unit_price')), 0),
+                output_field=FloatField()
+            )
         )
         .order_by('-total_sold')[:10]
     )
@@ -1252,9 +1256,10 @@ def inventory_reports(request):
     categories = MedicineCategory.objects.annotate(
         item_count=Count('medicine'),
         total_quantity=Coalesce(Sum('medicine__quantity_in_stock'), 0),
-        total_value=Coalesce(Sum(
-            F('medicine__quantity_in_stock') * F('medicine__unit_price')
-        ), 0)
+        total_value=ExpressionWrapper(
+            Coalesce(Sum(F('medicine__quantity_in_stock') * F('medicine__unit_price')), 0),
+            output_field=FloatField()
+        )
     )
     
     # Prepare chart data
@@ -1265,6 +1270,16 @@ def inventory_reports(request):
     top_selling_labels = [item['medicine__name'] for item in top_selling]
     top_selling_quantities = [item['total_sold'] for item in top_selling]
     
+    # Calculate total inventory value safely
+    total_inventory_value = float(
+        Medicine.objects.aggregate(
+            total=ExpressionWrapper(
+                Coalesce(Sum(F('quantity_in_stock') * F('unit_price')), 0),
+                output_field=FloatField()
+            )
+        )['total'] or 0
+    )
+    
     context = {
         'inventory_status': inventory_status,
         'low_stock_items': low_stock_items,
@@ -1272,14 +1287,14 @@ def inventory_reports(request):
         'expired_items': expired_items,
         'top_selling': top_selling,
         'categories': categories,
-        'categories_labels': categories_labels,
-        'categories_quantities': categories_quantities,
-        'categories_values': categories_values,
-        'top_selling_labels': top_selling_labels,
-        'top_selling_quantities': top_selling_quantities,
+        'categories_labels': json.dumps(categories_labels),
+        'categories_quantities': json.dumps(categories_quantities),
+        'categories_values': json.dumps(categories_values),
+        'top_selling_labels': json.dumps(top_selling_labels),
+        'top_selling_quantities': json.dumps(top_selling_quantities),
         'report_date': timezone.now().strftime("%B %d, %Y"),
         'start_date': start_date.strftime("%B %d, %Y"),
-        'total_inventory_value': sum(float(item.total_value) for item in inventory_status),
+        'total_inventory_value': total_inventory_value,
     }
     
     return render(request, 'reports/inventory_reports.html', context)

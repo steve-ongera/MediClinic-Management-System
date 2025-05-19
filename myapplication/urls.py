@@ -64,5 +64,6 @@ urlpatterns = [
     path('doctor/<int:pk>/delete/', views.doctor_delete, name='doctor_delete'),
     path('financial_reports/' , views.financial_reports , name="financial_reports"),
     path('reports/clinical/', views.clinical_reports, name='clinical_reports'),
+    path('reports/inventory/', views.inventory_reports, name='inventory_reports'),
 
 ]

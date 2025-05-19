@@ -1202,3 +1202,84 @@ def get_random_color(opacity=1):
         f'rgba(0, 0, 128, {opacity})',       # Navy
     ]
     return random.choice(colors)
+
+
+
+from django.shortcuts import render
+from django.db.models import Sum, F, ExpressionWrapper, FloatField
+from django.db.models.functions import Coalesce
+from django.utils import timezone
+from datetime import timedelta
+from .models import Medicine, MedicineCategory, SoldMedicine
+
+def inventory_reports(request):
+    # Current inventory status
+    inventory_status = Medicine.objects.annotate(
+        total_value=ExpressionWrapper(
+            F('quantity_in_stock') * F('unit_price'),
+            output_field=FloatField()
+        )
+    ).order_by('quantity_in_stock')
+    
+    # Low stock items (below reorder level)
+    low_stock_items = Medicine.objects.filter(
+        quantity_in_stock__lte=F('reorder_level')
+    ).order_by('quantity_in_stock')
+    
+    # Expired or soon-to-expire medicines
+    soon_to_expire = Medicine.objects.filter(
+        expiry_date__gte=timezone.now().date(),
+        expiry_date__lte=timezone.now().date() + timedelta(days=30)
+    ).order_by('expiry_date')
+    
+    expired_items = Medicine.objects.filter(
+        expiry_date__lt=timezone.now().date()
+    ).order_by('expiry_date')
+    
+    # Sales data - last 30 days
+    start_date = timezone.now().date() - timedelta(days=30)
+    top_selling = (
+        SoldMedicine.objects.filter(sale__sale_date__gte=start_date)
+        .values('medicine__name', 'medicine__category__name')
+        .annotate(
+            total_sold=Coalesce(Sum('quantity'), 0),
+            total_revenue=Coalesce(Sum(F('quantity') * F('unit_price')), 0)
+        )
+        .order_by('-total_sold')[:10]
+    )
+    
+    # Category breakdown
+    categories = MedicineCategory.objects.annotate(
+        item_count=Count('medicine'),
+        total_quantity=Coalesce(Sum('medicine__quantity_in_stock'), 0),
+        total_value=Coalesce(Sum(
+            F('medicine__quantity_in_stock') * F('medicine__unit_price')
+        ), 0)
+    )
+    
+    # Prepare chart data
+    categories_labels = [c.name for c in categories]
+    categories_quantities = [c.total_quantity for c in categories]
+    categories_values = [float(c.total_value) for c in categories]
+    
+    top_selling_labels = [item['medicine__name'] for item in top_selling]
+    top_selling_quantities = [item['total_sold'] for item in top_selling]
+    
+    context = {
+        'inventory_status': inventory_status,
+        'low_stock_items': low_stock_items,
+        'soon_to_expire': soon_to_expire,
+        'expired_items': expired_items,
+        'top_selling': top_selling,
+        'categories': categories,
+        'categories_labels': categories_labels,
+        'categories_quantities': categories_quantities,
+        'categories_values': categories_values,
+        'top_selling_labels': top_selling_labels,
+        'top_selling_quantities': top_selling_quantities,
+        'report_date': timezone.now().strftime("%B %d, %Y"),
+        'start_date': start_date.strftime("%B %d, %Y"),
+        'total_inventory_value': sum(float(item.total_value) for item in inventory_status),
+    }
+    
+    return render(request, 'reports/inventory_reports.html', context)

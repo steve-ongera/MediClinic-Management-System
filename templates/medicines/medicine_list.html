@@ -168,7 +168,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header" style="background-color: #1a73e8; color: white;">
-                <h5 class="modal-title" id="medicineDetailModalLabel">Medicine Details</h5>
+                <h5 style="color:white" class="modal-title" id="medicineDetailModalLabel">Medicine Details</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -270,93 +270,60 @@
     }
 </style>
 
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Select2 for better dropdowns -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <script>
-    // JavaScript to handle medicine detail viewing
-    document.addEventListener('DOMContentLoaded', function() {
-        // Handle view medicine buttons
-        document.querySelectorAll('.view-medicine').forEach(button => {
-            button.addEventListener('click', function() {
-                const medicineId = this.getAttribute('data-id');
-                fetchMedicineDetails(medicineId);
-            });
-        });
-        
-        // Handle edit from detail button
-        document.querySelector('.edit-from-detail').addEventListener('click', function() {
-            const medicineId = this.getAttribute('data-id');
-            // You would typically redirect to the edit page or open edit modal
-            console.log('Edit medicine with ID:', medicineId);
-        });
-        
-        // Simple search functionality
-        document.getElementById('medicineSearch').addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            document.querySelectorAll('.medicine-card').forEach(card => {
-                const medicineName = card.querySelector('.card-title').textContent.toLowerCase();
-                if (medicineName.includes(searchTerm)) {
-                    card.parentElement.style.display = 'block';
-                } else {
-                    card.parentElement.style.display = 'none';
+document.addEventListener("DOMContentLoaded", function () {
+    const detailButtons = document.querySelectorAll('.view-medicine');
+    
+    detailButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const medicineId = this.dataset.id;
+
+            fetch(`/ajax/medicine/${medicineId}/`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
                 }
+            })
+            .then(response => {
+                if (!response.ok) throw new Error("Failed to fetch data");
+                return response.json();
+            })
+            .then(data => {
+                // Update modal with data
+                document.getElementById('medicineDetailName').innerText = data.name;
+                document.getElementById('medicineDetailCategory').innerText = data.category;
+                document.getElementById('medicineDetailManufacturer').innerText = data.manufacturer;
+                document.getElementById('medicineDetailBatch').innerText = data.batch_number;
+                document.getElementById('medicineDetailExpiry').innerText = data.expiry_date;
+                document.getElementById('medicineDetailQuantity').innerText = data.quantity_in_stock;
+                document.getElementById('medicineDetailReorder').innerText = data.reorder_level;
+                document.getElementById('medicineDetailPrice').innerText = `KSh ${data.unit_price}`;
+                document.getElementById('medicineDetailUpdated').innerText = data.last_updated;
+
+                // Handle image display
+                const img = document.getElementById('medicineDetailImage');
+                const defaultIcon = document.getElementById('medicineDefaultIcon');
+                if (data.image_url) {
+                    img.src = data.image_url;
+                    img.style.display = 'block';
+                    defaultIcon.style.display = 'none';
+                } else {
+                    img.style.display = 'none';
+                    defaultIcon.style.display = 'block';
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                alert("Could not load medicine details.");
             });
         });
     });
-    
-    function fetchMedicineDetails(medicineId) {
-        // This would typically be an AJAX call to your backend
-        // For demonstration, we'll simulate it with a timeout
-        
-        // Show loading state
-        document.getElementById('medicineDetailName').textContent = 'Loading...';
-        
-        // Simulate API call
-        setTimeout(() => {
-            // In a real application, you would get this data from your backend
-            const medicine = {
-                id: medicineId,
-                name: 'Sample Medicine',
-                category: 'Antibiotics',
-                description: 'This is a detailed description of the medicine and its uses.',
-                quantity_in_stock: 15,
-                reorder_level: 10,
-                unit_price: '450.00',
-                manufacturer: 'PharmaCo Ltd.',
-                batch_number: 'BATCH-2023-456',
-                expiry_date: '2024-12-31',
-                updated_at: '2023-05-15 14:30:00',
-                image_url: '{% static "path/to/default/image.jpg" %}'
-            };
-            
-            // Update modal with medicine details
-            document.getElementById('medicineDetailName').textContent = medicine.name;
-            document.getElementById('medicineDetailCategory').textContent = medicine.category;
-            document.getElementById('medicineDetailQuantity').textContent = medicine.quantity_in_stock;
-            document.getElementById('medicineDetailReorder').textContent = medicine.reorder_level;
-            document.getElementById('medicineDetailPrice').textContent = 'KSh ' + medicine.unit_price;
-            document.getElementById('medicineDetailManufacturer').textContent = medicine.manufacturer;
-            document.getElementById('medicineDetailBatch').textContent = medicine.batch_number;
-            document.getElementById('medicineDetailExpiry').textContent = medicine.expiry_date;
-            document.getElementById('medicineDetailUpdated').textContent = medicine.updated_at;
-            document.getElementById('medicineDetailDescription').textContent = medicine.description;
-            
-            // Handle image display
-            const imgContainer = document.getElementById('medicineImageContainer');
-            const defaultIcon = document.getElementById('medicineDefaultIcon');
-            const medicineImg = document.getElementById('medicineDetailImage');
-            
-            if (medicine.image_url) {
-                medicineImg.src = medicine.image_url;
-                medicineImg.style.display = 'block';
-                defaultIcon.style.display = 'none';
-            } else {
-                medicineImg.style.display = 'none';
-                defaultIcon.style.display = 'block';
-            }
-            
-            // Set the edit button's data-id
-            document.querySelector('.edit-from-detail').setAttribute('data-id', medicineId);
-        }, 500);
-    }
+});
 </script>
+
 
 {% endblock %}

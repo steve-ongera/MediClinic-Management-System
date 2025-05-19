@@ -357,6 +357,30 @@ class MedicineListView(LoginRequiredMixin, ListView):
         context['categories'] = MedicineCategory.objects.all()
         return context
 
+from django.http import JsonResponse, Http404
+from .models import Medicine  # adjust as per your model import
+
+def get_medicine_detail(request, pk):
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        try:
+            medicine = Medicine.objects.select_related('category').get(pk=pk)
+            data = {
+                'name': medicine.name,
+                'category': medicine.category.name if medicine.category else 'No category',
+                'manufacturer': medicine.manufacturer,
+                'batch_number': medicine.batch_number,
+                'expiry_date': medicine.expiry_date.strftime('%Y-%m-%d') if medicine.expiry_date else '',
+                'quantity_in_stock': medicine.quantity_in_stock,
+                'reorder_level': medicine.reorder_level,
+                'unit_price': str(medicine.unit_price),
+                'last_updated': medicine.updated_at.strftime('%Y-%m-%d %H:%M:%S') if medicine.updated_at else '',
+                'image_url': medicine.image.url if medicine.image else '',
+            }
+            return JsonResponse(data)
+        except Medicine.DoesNotExist:
+            raise Http404("Medicine not found")
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
 
 class MedicineDetailView(LoginRequiredMixin, DetailView):
     """View for displaying details of a single medicine"""

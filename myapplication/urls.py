@@ -31,6 +31,7 @@ urlpatterns = [
 
     path('medicine-categories/', views.medicine_category_list, name='medicine_category_list'),
     path('medicine-categories/<int:category_id>/', views.medicine_category_detail, name='medicine_category_detail'),
+    path('ajax/medicine/<int:pk>/', views.get_medicine_detail, name='ajax-medicine-detail'),
     
     # Category URLs
     path('medicine/categories/', views.CategoryListView.as_view(), name='category_list'),

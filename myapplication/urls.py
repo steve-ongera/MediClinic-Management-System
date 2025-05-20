@@ -73,4 +73,6 @@ urlpatterns = [
     path('users/<int:pk>/edit/', views.user_edit, name='user_edit'),
     path('users/<int:pk>/delete/', views.user_delete, name='user_delete'),
 
+    path('doctor_calendar_view/' , views.doctor_calendar_view , name="doctor_calendar_view"),
+
 ]

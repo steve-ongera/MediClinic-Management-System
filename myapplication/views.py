@@ -1502,7 +1502,7 @@ def generate_calendar_data(doctor, year, month):
     # Get all appointments for the doctor in this month
     appointments = Appointment.objects.filter(
         doctor=doctor,
-        appointment_date__date__range=[first_day, last_day]
+        scheduled_time__date__range=[first_day, last_day]
     ).select_related('patient')
     
     # Get doctor's leaves

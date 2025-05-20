@@ -61,6 +61,7 @@ class Doctor(models.Model):
     # Personal Information
     first_name = models.CharField(_("First Name"), max_length=100)
     last_name = models.CharField(_("Last Name"), max_length=100)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, blank=True, null=True)
     date_of_birth = models.DateField(_("Date of Birth"))
     gender = models.CharField(_("Gender"), max_length=1, choices=GENDER_CHOICES)
     id_number = models.CharField(_("ID Number"), max_length=20, unique=True)

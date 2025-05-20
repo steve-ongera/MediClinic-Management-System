@@ -188,7 +188,7 @@ class DoctorAdmin(admin.ModelAdmin):
 
     fieldsets = (
         ('Personal Information', {
-            'fields': ('first_name', 'last_name', 'date_of_birth', 'gender', 'id_number',
+            'fields': ('first_name', 'last_name', 'user', 'date_of_birth', 'gender', 'id_number',
                        'national_id', 'passport_number', 'blood_type', 'age')
         }),
         ('Contact Information', {

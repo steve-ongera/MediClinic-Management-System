@@ -1443,7 +1443,6 @@ def user_delete(request, pk):
         'user': user
     })
 
-
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Count, Sum, Q, Avg
@@ -1501,7 +1500,7 @@ def generate_calendar_data(doctor, year, month):
     
     # Get all appointments for the doctor in this month
     appointments = Appointment.objects.filter(
-        doctor=doctor,
+        doctor=doctor.user,  # Use doctor.user instead of doctor
         scheduled_time__date__range=[first_day, last_day]
     ).select_related('patient')
     
@@ -1526,7 +1525,7 @@ def generate_calendar_data(doctor, year, month):
                 day_date = date(year, month, day)
                 
                 # Get appointments for this day
-                day_appointments = [apt for apt in appointments if apt.appointment_date.date() == day_date]
+                day_appointments = [apt for apt in appointments if apt.scheduled_time.date() == day_date]
                 
                 # Check if doctor is on leave
                 is_on_leave = any(leave.start_date <= day_date <= leave.end_date for leave in leaves)
@@ -1626,8 +1625,8 @@ def doctor_day_detail_ajax(request, doctor_id, date_str):
         # Get appointments for the day
         appointments = Appointment.objects.filter(
             doctor=doctor,
-            appointment_date__date=selected_date
-        ).select_related('patient').order_by('appointment_date')
+            scheduled_time__date=selected_date
+        ).select_related('patient').order_by('scheduled_time')
         
         # Get doctor's schedule for this day
         day_of_week = selected_date.weekday()
@@ -1651,12 +1650,12 @@ def doctor_day_detail_ajax(request, doctor_id, date_str):
             appointment_data.append({
                 'id': apt.id,
                 'patient_name': f"{apt.patient.first_name} {apt.patient.last_name}",
-                'time': apt.appointment_date.strftime('%H:%M'),
+                'time': apt.scheduled_time.strftime('%H:%M'),
                 'duration': apt.duration,
                 'type': apt.get_appointment_type_display(),
                 'status': apt.get_status_display(),
                 'reason': apt.reason,
-                'end_time': apt.end_time.strftime('%H:%M'),
+                'end_time': (apt.scheduled_time + timedelta(minutes=apt.duration)).strftime('%H:%M'),
             })
         
         # Prepare schedule data
@@ -1709,7 +1708,7 @@ def doctor_workload_analytics(request):
         # Get appointments in date range
         appointments = Appointment.objects.filter(
             doctor=doctor,
-            appointment_date__date__range=[start_date, end_date]
+            scheduled_time__date__range=[start_date, end_date]
         )
         
         # Calculate metrics
@@ -1719,7 +1718,7 @@ def doctor_workload_analytics(request):
         
         # Get busiest day
         busiest_day_data = appointments.extra(
-            select={'day': 'date(appointment_date)'}
+            select={'day': 'date(scheduled_time)'}
         ).values('day').annotate(
             count=Count('id')
         ).order_by('-count').first()

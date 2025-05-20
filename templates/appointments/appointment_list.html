@@ -288,111 +288,132 @@
     </div>
 </div>
 
-
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<!-- Select2 for better dropdowns -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <script>
+// Modal functionality
+let appointmentModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize the modal
+    appointmentModal = new bootstrap.Modal(document.getElementById('appointmentDetailModal'));
+    
     // Initialize date filter with today's date if not set
-    document.addEventListener('DOMContentLoaded', function() {
-        const dateFilter = document.querySelector('input[name="date"]');
-        if (!dateFilter.value) {
-            // Uncomment to set default to today
-            // dateFilter.value = '{{ today|date:"Y-m-d" }}';
-        }
-        
-        // Auto-submit form when filters change
-        document.querySelector('select[name="status"]').addEventListener('change', function() {
-            document.getElementById('search-form').submit();
-        });
-        
-        document.querySelector('input[name="date"]').addEventListener('change', function() {
-            document.getElementById('search-form').submit();
-        });
+    const dateFilter = document.querySelector('input[name="date"]');
+    if (!dateFilter.value) {
+        // Uncomment to set default to today
+        // dateFilter.value = '{{ today|date:"Y-m-d" }}';
+    }
+    
+    // Auto-submit form when filters change
+    document.querySelector('select[name="status"]').addEventListener('change', function() {
+        document.getElementById('search-form').submit();
     });
     
-    // Modal functionality
-    const appointmentModal = new bootstrap.Modal(document.getElementById('appointmentDetailModal'));
+    document.querySelector('input[name="date"]').addEventListener('change', function() {
+        document.getElementById('search-form').submit();
+    });
     
-    function showAppointmentDetails(appointmentId) {
-        // Show loading state
-        document.getElementById('appointmentLoading').style.display = 'block';
-        document.getElementById('appointmentContent').style.display = 'none';
-        
-        // Show modal
-        appointmentModal.show();
-        
-        // Fetch appointment details
-        fetch(`/appointments/${appointmentId}/detail/`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Update modal content
-                    const appointment = data.appointment;
-                    
-                    document.getElementById('patientName').textContent = appointment.patient_name;
-                    document.getElementById('patientId').textContent = appointment.patient_id;
-                    document.getElementById('patientLink').href = `/patients/${appointment.patient_id}/`;
-                    
-                    document.getElementById('doctorName').textContent = appointment.doctor_name;
-                    document.getElementById('receptionistName').textContent = appointment.receptionist_name;
-                    document.getElementById('doctorLink').href = `/doctors/${appointment.doctor_id}/`;
-                    
-                    document.getElementById('appointmentStatus').textContent = appointment.status;
-                    document.getElementById('scheduledTime').textContent = appointment.scheduled_time;
-                    document.getElementById('endTime').textContent = appointment.end_time;
-                    document.getElementById('createdAt').textContent = appointment.created_at;
-                    document.getElementById('updatedAt').textContent = appointment.updated_at;
-                    
-                    document.getElementById('appointmentReason').textContent = appointment.reason;
-                    document.getElementById('appointmentSymptoms').textContent = appointment.symptoms;
-                    
-                    // Update status badge color
-                    const statusBadge = document.getElementById('appointmentStatus');
-                    statusBadge.className = 'badge';
-                    
-                    switch(appointment.status) {
-                        case 'Scheduled':
-                            statusBadge.classList.add('bg-primary');
-                            break;
-                        case 'In Progress':
-                            statusBadge.classList.add('bg-warning');
-                            break;
-                        case 'Completed':
-                            statusBadge.classList.add('bg-success');
-                            break;
-                        case 'Cancelled':
-                            statusBadge.classList.add('bg-secondary');
-                            break;
-                        case 'No Show':
-                            statusBadge.classList.add('bg-danger');
-                            break;
-                        default:
-                            statusBadge.classList.add('bg-primary');
-                    }
-                    
-                    // Update edit link
-                    document.getElementById('editAppointmentLink').href = `/appointments/${appointmentId}/edit/`;
-                    
-                    // Setup cancel button
-                    document.getElementById('cancelAppointmentBtn').onclick = function() {
-                        if (confirm('Are you sure you want to cancel this appointment?')) {
-                            window.location.href = `/appointments/${appointmentId}/cancel/`;
-                        }
-                    };
-                    
-                    // Hide loading, show content
-                    document.getElementById('appointmentLoading').style.display = 'none';
-                    document.getElementById('appointmentContent').style.display = 'block';
-                    
-                } else {
-                    alert('Error loading appointment details: ' + data.error);
-                    appointmentModal.hide();
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('An error occurred while retrieving appointment details');
-                appointmentModal.hide();
-            });
+    // Add event listener for the close button
+    const closeButton = document.querySelector('#appointmentDetailModal .btn-close');
+    if (closeButton) {
+        closeButton.addEventListener('click', function() {
+            appointmentModal.hide();
+        });
     }
+    
+    // Add event listener for the "Close" button in modal footer
+    const closeFooterButton = document.querySelector('#appointmentDetailModal .modal-footer .btn-secondary');
+    if (closeFooterButton) {
+        closeFooterButton.addEventListener('click', function() {
+            appointmentModal.hide();
+        });
+    }
+});
+
+function showAppointmentDetails(appointmentId) {
+    // Show loading state
+    document.getElementById('appointmentLoading').style.display = 'block';
+    document.getElementById('appointmentContent').style.display = 'none';
+    
+    // Show modal
+    appointmentModal.show();
+    
+    // Fetch appointment details
+    fetch(`/appointments/${appointmentId}/detail/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update modal content
+                const appointment = data.appointment;
+                
+                document.getElementById('patientName').textContent = appointment.patient_name;
+                document.getElementById('patientId').textContent = appointment.patient_id;
+                document.getElementById('patientLink').href = `#`;
+                
+                document.getElementById('doctorName').textContent = appointment.doctor_name;
+                document.getElementById('receptionistName').textContent = appointment.receptionist_name;
+                document.getElementById('doctorLink').href = `/doctor/${appointment.doctor_id}/`;
+                
+                document.getElementById('appointmentStatus').textContent = appointment.status;
+                document.getElementById('scheduledTime').textContent = appointment.scheduled_time;
+                document.getElementById('endTime').textContent = appointment.end_time;
+                document.getElementById('createdAt').textContent = appointment.created_at;
+                document.getElementById('updatedAt').textContent = appointment.updated_at;
+                
+                document.getElementById('appointmentReason').textContent = appointment.reason;
+                document.getElementById('appointmentSymptoms').textContent = appointment.symptoms;
+                
+                // Update status badge color
+                const statusBadge = document.getElementById('appointmentStatus');
+                statusBadge.className = 'badge';
+                
+                switch(appointment.status) {
+                    case 'Scheduled':
+                        statusBadge.classList.add('bg-primary');
+                        break;
+                    case 'In Progress':
+                        statusBadge.classList.add('bg-warning');
+                        break;
+                    case 'Completed':
+                        statusBadge.classList.add('bg-success');
+                        break;
+                    case 'Cancelled':
+                        statusBadge.classList.add('bg-secondary');
+                        break;
+                    case 'No Show':
+                        statusBadge.classList.add('bg-danger');
+                        break;
+                    default:
+                        statusBadge.classList.add('bg-primary');
+                }
+                
+                // Update edit link
+                document.getElementById('editAppointmentLink').href = `/appointments/${appointmentId}/edit/`;
+                
+                // Setup cancel button
+                document.getElementById('cancelAppointmentBtn').onclick = function() {
+                    if (confirm('Are you sure you want to cancel this appointment?')) {
+                        window.location.href = `/appointments/${appointmentId}/cancel/`;
+                    }
+                };
+                
+                // Hide loading, show content
+                document.getElementById('appointmentLoading').style.display = 'none';
+                document.getElementById('appointmentContent').style.display = 'block';
+                
+            } else {
+                alert('Error loading appointment details: ' + data.error);
+                appointmentModal.hide();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while retrieving appointment details');
+            appointmentModal.hide();
+        });
+}
 </script>
 {% endblock %}

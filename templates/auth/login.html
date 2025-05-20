@@ -275,7 +275,7 @@
               
               <div class="login-divider">or</div>
               
-              <p class="text-center mb-0" style="font-size: 0.85rem;">Need assistance? <a href="#" class="forgot-password">Contact IT Support</a></p>
+              <p class="text-center mb-0" style="font-size: 0.85rem;">Need assistance? <a href="#" data-bs-toggle="modal" data-bs-target="#contactModal" class="forgot-password">Contact IT Support</a></p>
             </form>
           </div>
         </div>
@@ -289,6 +289,88 @@
       </div>
     </div>
   </div>
+
+  <!-- Contact Support Modal -->
+<div class="modal fade" id="contactModal" tabindex="-1" aria-labelledby="contactModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="max-width: 550px;">
+        <div class="modal-content" style="border-radius: 10px; border: none; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+            <div class="modal-header" style="border-bottom: 1px solid #e9ecef; padding: 1.2rem 1.5rem;">
+                <h5 class="modal-title" style="font-weight: 600; color: #0A4DA6;">Technical Support Contact</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size: 0.8rem;"></button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <div style="display: flex; align-items: center; margin-bottom: 1.2rem;">
+                    <img src="{% static 'assets/img/KenCom.png'%}" alt="Kencom Logo" style="width: 50px; height: auto; margin-right: 15px;">
+                    <div>
+                        <h4 style="font-size: 1.1rem; font-weight: 600; margin-bottom: 0; color: #333;">Kencom Softwares Ltd</h4>
+                        <p style="font-size: 0.85rem; color: #6c757d; margin-bottom: 0;">Software Development Company</p>
+                    </div>
+                </div>
+                
+                <p style="font-size: 0.9rem; color: #495057; margin-bottom: 1.5rem; line-height: 1.5;">
+                    Thank you for using our Mediclinic Management System. Our team is available to assist you with any technical issues.
+                </p>
+                
+                <div style="background-color: #f8f9fa; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: center; margin-bottom: 0.8rem;">
+                        <div style="width: 32px; height: 32px; background-color: rgba(26, 109, 239, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0;">
+                            <i class="bi bi-person" style="color: #1A6FEF; font-size: 0.9rem;"></i>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.75rem; color: #6c757d; margin-bottom: 0.1rem;">Developer Contact</p>
+                            <p style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0; color: #343a40;">Steve Ongera (Lead Developer)</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; margin-bottom: 0.8rem;">
+                        <div style="width: 32px; height: 32px; background-color: rgba(26, 109, 239, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0;">
+                            <i class="bi bi-envelope" style="color: #1A6FEF; font-size: 0.9rem;"></i>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.75rem; color: #6c757d; margin-bottom: 0.1rem;">Email</p>
+                            <p style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0; color: #343a40;">steveongera001@gmail.com</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center; margin-bottom: 0.8rem;">
+                        <div style="width: 32px; height: 32px; background-color: rgba(26, 109, 239, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0;">
+                            <i class="bi bi-telephone" style="color: #1A6FEF; font-size: 0.9rem;"></i>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.75rem; color: #6c757d; margin-bottom: 0.1rem;">Phone</p>
+                            <p style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0; color: #343a40;">+254 757 790 687</p>
+                        </div>
+                    </div>
+                    
+                    <div style="display: flex; align-items: center;">
+                        <div style="width: 32px; height: 32px; background-color: rgba(26, 109, 239, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px; flex-shrink: 0;">
+                            <i class="bi bi-clock" style="color: #1A6FEF; font-size: 0.9rem;"></i>
+                        </div>
+                        <div>
+                            <p style="font-size: 0.75rem; color: #6c757d; margin-bottom: 0.1rem;">Support Hours</p>
+                            <p style="font-size: 0.9rem; font-weight: 500; margin-bottom: 0; color: #343a40;">Mon-Fri: 9AM - 5PM EAT</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background-color: #e7f1ff; padding: 0.8rem; border-radius: 6px; margin-bottom: 1.5rem;">
+                    <div style="display: flex; align-items: flex-start;">
+                        <i class="bi bi-info-circle" style="color: #1A6FEF; font-size: 1rem; margin-right: 10px; margin-top: 2px;"></i>
+                        <p style="font-size: 0.8rem; color: #1A6FEF; margin-bottom: 0; line-height: 1.4;">
+                            For urgent issues outside business hours, please email with "URGENT" in the subject line.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="border-top: 1px solid #e9ecef; padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-sm" data-bs-dismiss="modal" style="background-color: #f8f9fa; color: #495057; border: 1px solid #dee2e6; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem;">Close</button>
+                <a href="mailto:steveongera001@gmail.com" class="btn btn-sm" style="background-color: #1A6FEF; color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.85rem;">
+                    <i class="bi bi-envelope me-1"></i> Email Support
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
 
   <!-- Vendor JS Files -->
   <script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js'%}"></script>

@@ -1741,3 +1741,103 @@ def doctor_workload_analytics(request):
     }
     
     return render(request, 'calendar/workload_analytics.html', context)
+
+
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from .models import Appointment
+
+@login_required
+def appointment_list(request):
+    """View to list appointments with search and pagination"""
+    # Get query parameters
+    search_query = request.GET.get('q', '')
+    status_filter = request.GET.get('status', '')
+    date_filter = request.GET.get('date', '')
+    page = request.GET.get('page', 1)
+    
+    # Get appointments, ordered by the latest first
+    appointments = Appointment.objects.all().order_by('-scheduled_time')
+    
+    # Apply filters
+    if search_query:
+        appointments = appointments.filter(
+            Q(patient__first_name__icontains=search_query) |
+            Q(patient__last_name__icontains=search_query) |
+            Q(doctor__first_name__icontains=search_query) |
+            Q(doctor__last_name__icontains=search_query) |
+            Q(reason__icontains=search_query)
+        )
+    
+    if status_filter:
+        appointments = appointments.filter(status=status_filter)
+    
+    if date_filter:
+        try:
+            # Filter by selected date
+            filter_date = timezone.datetime.strptime(date_filter, '%Y-%m-%d').date()
+            appointments = appointments.filter(scheduled_time__date=filter_date)
+        except ValueError:
+            pass  # Invalid date format, ignore the filter
+    
+    # Pagination
+    paginator = Paginator(appointments, 10)  # 10 appointments per page
+    
+    try:
+        appointments_page = paginator.page(page)
+    except PageNotAnInteger:
+        appointments_page = paginator.page(1)
+    except EmptyPage:
+        appointments_page = paginator.page(paginator.num_pages)
+    
+    # Get status choices for filter dropdown
+    status_choices = Appointment.STATUS_CHOICES
+    
+    context = {
+        'appointments': appointments_page,
+        'search_query': search_query,
+        'status_filter': status_filter,
+        'date_filter': date_filter,
+        'status_choices': status_choices,
+        'today': timezone.now().date(),
+    }
+    
+    return render(request, 'appointments/appointment_list.html', context)
+
+@login_required
+def appointment_detail_ajax(request, appointment_id):
+    """AJAX view to get appointment details for modal"""
+    try:
+        appointment = get_object_or_404(Appointment, id=appointment_id)
+        
+        # Format data for JSON response
+        appointment_data = {
+            'id': appointment.id,
+            'patient_name': f"{appointment.patient.first_name} {appointment.patient.last_name}",
+            'patient_id': appointment.patient.id,
+            'doctor_name': f"Dr. {appointment.doctor.first_name} {appointment.doctor.last_name}",
+            'doctor_id': appointment.doctor.id,
+            'scheduled_time': appointment.scheduled_time.strftime('%Y-%m-%d %H:%M'),
+            'end_time': appointment.end_time.strftime('%Y-%m-%d %H:%M') if appointment.end_time else 'Not set',
+            'status': appointment.get_status_display(),
+            'reason': appointment.reason,
+            'symptoms': appointment.symptoms or 'None recorded',
+            'created_at': appointment.created_at.strftime('%Y-%m-%d %H:%M'),
+            'updated_at': appointment.updated_at.strftime('%Y-%m-%d %H:%M'),
+            'receptionist_name': f"{appointment.receptionist.first_name} {appointment.receptionist.last_name}" if appointment.receptionist else 'N/A',
+        }
+        
+        return JsonResponse({
+            'success': True,
+            'appointment': appointment_data
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        })

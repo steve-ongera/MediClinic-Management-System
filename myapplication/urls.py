@@ -74,5 +74,10 @@ urlpatterns = [
     path('users/<int:pk>/delete/', views.user_delete, name='user_delete'),
 
     path('doctor_calendar_view/' , views.doctor_calendar_view , name="doctor_calendar_view"),
+    # Appointment list view
+    path('appointments/', views.appointment_list, name='appointment_list'),
+    
+    # AJAX appointment detail view
+    path('appointments/<int:appointment_id>/detail/', views.appointment_detail_ajax, name='appointment_detail_ajax'),
 
 ]

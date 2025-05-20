@@ -81,5 +81,8 @@ urlpatterns = [
     path('appointments/<int:appointment_id>/detail/', views.appointment_detail_ajax, name='appointment_detail_ajax'),
     path('hep-support/', views.help_support, name='help_support'),
     path('clinic-settings/', views.clinic_settings, name='clinic_settings'),
+    path('forgot-password/', views.forgot_password, name='forgot_password'),
+    path('reset-password/<uidb64>/<token>/', views.reset_password, name='reset_password'),
+    
 
 ]

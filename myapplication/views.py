@@ -2063,3 +2063,107 @@ def reset_password(request, uidb64, token):
     else:
         messages.error(request, 'Invalid or expired reset link. Please try again.')
         return redirect('login')
+    
+
+
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.utils import timezone
+from django.db.models import Count
+from datetime import timedelta, datetime
+
+from .models import (
+    User, Patient, Appointment, Doctor, Consultation, 
+    Prescription, Medicine, MedicineSale
+)
+
+def is_receptionist(user):
+    return user.is_authenticated and user.user_type == 'RECEPTIONIST'
+
+@login_required
+@user_passes_test(is_receptionist)
+def receptionist_dashboard(request):
+    # Get current date and time
+    today = timezone.now().date()
+    one_week_ago = today - timedelta(days=7)
+    
+    # Today's appointments
+    todays_appointments = Appointment.objects.filter(
+        scheduled_time__date=today
+    ).order_by('scheduled_time')
+    
+    # New patients registered this week
+    new_patients_this_week = Patient.objects.filter(
+        created_at__gte=one_week_ago
+    ).count()
+    
+    # Recent patient registrations (last 6)
+    recent_patients = Patient.objects.order_by('-created_at')[:6]
+    
+    # Add age property to patients (since it's defined in the model as a property)
+    for patient in recent_patients:
+        # Ensure patients have a full_name attribute
+        patient.full_name = f"{patient.first_name} {patient.last_name}"
+    
+    # Available doctors for today
+    # This assumes doctors with schedules for today are available
+    available_doctors = Doctor.objects.filter(
+        is_active=True,
+        doctorschedule__day_of_week=today.weekday(),
+        doctorschedule__is_active=True
+    ).distinct()
+    
+    # Make sure Doctor objects have the needed attributes
+    for doctor in available_doctors:
+        if not hasattr(doctor, 'working_hours') or not doctor.working_hours:
+            # Get schedule for today
+            schedule = doctor.doctorschedule_set.filter(
+                day_of_week=today.weekday(),
+                is_active=True
+            ).first()
+            if schedule:
+                doctor.working_hours = f"{schedule.start_time.strftime('%H:%M')} - {schedule.end_time.strftime('%H:%M')}"
+            else:
+                doctor.working_hours = "Not specified"
+    
+    # Pending prescriptions (not yet filled/sold)
+    # This is an approximation as we don't have a specific field for "filled" status
+    recent_consultations = Consultation.objects.filter(
+        created_at__gte=one_week_ago
+    )
+    pending_prescriptions = Prescription.objects.filter(
+        consultation__in=recent_consultations
+    )
+    
+    # Sample announcements (would come from a real model in production)
+    announcements = [
+        {
+            'title': 'Staff Meeting',
+            'content': 'Reminder: Monthly staff meeting on Friday at 4:00 PM.',
+            'created_at': datetime.now() - timedelta(hours=3),
+            'is_new': True
+        },
+        {
+            'title': 'New COVID Protocol',
+            'content': 'Updated COVID safety protocols are now in effect. Please review the guidelines.',
+            'created_at': datetime.now() - timedelta(days=2),
+            'is_new': False
+        },
+        {
+            'title': 'System Maintenance',
+            'content': 'System will be down for maintenance on Sunday from 2 AM to 5 AM.',
+            'created_at': datetime.now() - timedelta(days=4),
+            'is_new': False
+        }
+    ]
+    
+    context = {
+        'todays_appointments': todays_appointments,
+        'new_patients_this_week': new_patients_this_week,
+        'recent_patients': recent_patients,
+        'available_doctors': available_doctors,
+        'pending_prescriptions': pending_prescriptions,
+        'announcements': announcements,
+    }
+    
+    return render(request, 'dashboard/receptionist_dashboard.html', context)

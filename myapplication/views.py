@@ -1841,3 +1841,128 @@ def appointment_detail_ajax(request, appointment_id):
             'success': False,
             'error': str(e)
         })
+    
+
+
+@login_required
+def help_support(request):
+    return render(request, 'help_support.html')
+
+
+
+from django.shortcuts import render
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.http import HttpResponseRedirect
+from django.urls import reverse
+
+# Custom template tag for splitting strings
+from django import template
+register = template.Library()
+
+@register.filter
+def split(value, arg):
+    """Split a string into a list on the given delimiter"""
+    return value.split(arg)
+
+
+# Helper function to check if user is admin/staff
+def is_admin(user):
+    return user.is_staff or user.is_superuser
+
+
+@login_required
+@user_passes_test(is_admin)
+def clinic_settings(request):
+    """
+    View for clinic system settings page
+    Only accessible by staff/admin users
+    """
+    if request.method == 'POST':
+        # Process the submitted form data
+        try:
+            # Extract form data
+            clinic_name = request.POST.get('clinicName')
+            timezone = request.POST.get('timezone')
+            currency = request.POST.get('currency')
+            date_format = request.POST.get('dateFormat')
+            
+            # Working hours processing
+            working_hours = {}
+            for day in ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday']:
+                is_active = request.POST.get(f'{day}Toggle') == 'on'
+                open_time = request.POST.get(f'{day}Open')
+                close_time = request.POST.get(f'{day}Close')
+                working_hours[day] = {
+                    'active': is_active,
+                    'open': open_time,
+                    'close': close_time
+                }
+            
+            # Appointment settings
+            slot_duration = int(request.POST.get('slotDuration'))
+            max_patients = int(request.POST.get('maxPatients'))
+            booking_days = int(request.POST.get('bookingDays'))
+            cancel_hours = int(request.POST.get('cancelHours'))
+            
+            # Security settings
+            session_timeout = int(request.POST.get('sessionTimeout'))
+            require_upper = request.POST.get('requireUpper') == 'on'
+            require_special = request.POST.get('requireSpecial') == 'on'
+            require_digit = request.POST.get('requireDigit') == 'on'
+            min_password_length = int(request.POST.get('minPasswordLength'))
+            
+            # TODO: Save settings to your settings model or configuration
+            # settings = ClinicSettings.objects.first()
+            # settings.clinic_name = clinic_name
+            # ...
+            # settings.save()
+            
+            messages.success(request, "Settings updated successfully")
+            return HttpResponseRedirect(reverse('system_settings'))
+        
+        except Exception as e:
+            messages.error(request, f"Error updating settings: {str(e)}")
+            return HttpResponseRedirect(reverse('system_settings'))
+    
+    # For GET requests, load current settings
+    # You would typically load these from your database
+    context = {
+        'current_settings': {
+            'clinic_name': 'Harmony Medical Clinic',
+            'clinic_logo': '/static/assets/img/clinic-logo.png',
+            'timezone': 'America/New_York',
+            'currency': 'USD',
+            'date_format': 'MM/DD/YYYY',
+        },
+        'working_hours': {
+            'monday': {'active': True, 'open': '08:00', 'close': '18:00'},
+            'tuesday': {'active': True, 'open': '08:00', 'close': '18:00'},
+            'wednesday': {'active': True, 'open': '08:00', 'close': '18:00'},
+            'thursday': {'active': True, 'open': '08:00', 'close': '18:00'},
+            'friday': {'active': True, 'open': '08:00', 'close': '18:00'},
+            'saturday': {'active': True, 'open': '09:00', 'close': '14:00'},
+            'sunday': {'active': False, 'open': '', 'close': ''},
+        },
+        'appointment_settings': {
+            'slot_duration': 30,
+            'max_patients': 50,
+            'booking_days': 30,
+            'cancel_hours': 24,
+        },
+        'security_settings': {
+            'session_timeout': 60,
+            'require_upper': True,
+            'require_special': True,
+            'require_digit': True,
+            'min_password_length': 8,
+        },
+        'days_of_week': 'Monday,Tuesday,Wednesday,Thursday,Friday,Saturday,Sunday',
+    }
+    
+    # Add any system messages you want to display
+    if not request.session.get('settings_viewed'):
+        messages.info(request, "You can customize your clinic settings here")
+        request.session['settings_viewed'] = True
+        
+    return render(request, 'clinic-settings.html', context)

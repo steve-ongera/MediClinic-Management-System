@@ -79,5 +79,7 @@ urlpatterns = [
     
     # AJAX appointment detail view
     path('appointments/<int:appointment_id>/detail/', views.appointment_detail_ajax, name='appointment_detail_ajax'),
+    path('hep-support/', views.help_support, name='help_support'),
+    path('clinic-settings/', views.clinic_settings, name='clinic_settings'),
 
 ]

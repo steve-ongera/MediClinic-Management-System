@@ -96,19 +96,19 @@
                 <h5 class="card-title">Quick Actions</h5>
                 <div class="row text-center">
                   <div class="col-md-3 col-6 mb-3">
-                    <a href="#" class="btn btn-primary btn-sm w-100 py-2">
+                    <a href="{% url 'patients-create'%}" class="btn btn-primary btn-sm w-100 py-2">
                       <i class="bi bi-person-plus"></i><br>
                       New Patient
                     </a>
                   </div>
                   <div class="col-md-3 col-6 mb-3">
-                    <a href="#" class="btn btn-outline-primary btn-sm w-100 py-2">
+                    <a href="{% url 'new_consultation'%}" class="btn btn-outline-primary btn-sm w-100 py-2">
                       <i class="bi bi-calendar-plus"></i><br>
                       New Appointment
                     </a>
                   </div>
                   <div class="col-md-3 col-6 mb-3">
-                    <a href="#" class="btn btn-outline-primary btn-sm w-100 py-2">
+                    <a href="{% url 'create_sale_from_consultation'%}" class="btn btn-outline-primary btn-sm w-100 py-2">
                       <i class="bi bi-cash-stack"></i><br>
                       Process Payment
                     </a>

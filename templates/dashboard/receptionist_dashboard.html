@@ -144,7 +144,7 @@
                       {% for appointment in todays_appointments|slice:":5" %}
                       <tr>
                         <td>{{ appointment.scheduled_time|time:"H:i" }}</td>
-                        <td>{{ appointment.patient.full_name }}</td>
+                        <td>{{ appointment.patient.first_name}}</td>
                         <td>Dr. {{ appointment.doctor.last_name }}</td>
                         <td>
                           <span class="badge bg-{% if appointment.status == 'COMPLETED' %}success{% elif appointment.status == 'CANCELLED' %}danger{% elif appointment.status == 'IN_PROGRESS' %}info{% else %}warning{% endif %}">

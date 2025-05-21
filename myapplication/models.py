@@ -383,6 +383,9 @@ class Appointment(models.Model):
     class Meta:
         ordering = ['scheduled_time']
 
+import random
+import string
+
 class Consultation(models.Model):
     appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE)
     diagnosis = models.TextField()
@@ -390,11 +393,24 @@ class Consultation(models.Model):
     notes = models.TextField(blank=True, null=True)
     follow_up_date = models.DateField(blank=True, null=True)
     follow_up_notes = models.TextField(blank=True, null=True)
+    consultation_code = models.CharField(max_length=10, blank=True, null=True, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def __str__(self):
         return f"Consultation for {self.appointment.patient} on {self.created_at.date()}"
+
+    def generate_unique_code(self):
+        while True:
+            code = 'R' + ''.join(random.choices(string.ascii_uppercase + string.digits, k=4))
+            if not Consultation.objects.filter(consultation_code=code).exists():
+                return code
+
+    def save(self, *args, **kwargs):
+        if not self.consultation_code:
+            self.consultation_code = self.generate_unique_code()
+        super().save(*args, **kwargs)
+
 
 class Prescription(models.Model):
     consultation = models.ForeignKey(Consultation, on_delete=models.CASCADE)

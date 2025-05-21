@@ -849,13 +849,21 @@ class OverTheCounterSaleForm(forms.ModelForm):
             'payment_status': forms.Select(attrs={'class': 'form-control'}),
         }
 
-
 class OverTheCounterSaleItemForm(forms.ModelForm):
     """Form for adding items to an over-the-counter sale."""
     
     medicine = forms.ModelChoiceField(
         queryset=Medicine.objects.filter(quantity_in_stock__gt=0),
         widget=forms.Select(attrs={'class': 'form-control medicine-select'})
+    )
+    
+    # Make unit_price not required in form validation
+    unit_price = forms.DecimalField(
+        required=False,  # This is the key change
+        widget=forms.NumberInput(attrs={
+            'class': 'form-control item-price',
+            'readonly': 'readonly'
+        })
     )
     
     class Meta:
@@ -867,10 +875,6 @@ class OverTheCounterSaleItemForm(forms.ModelForm):
                 'min': '1',
                 'step': '1'
             }),
-            'unit_price': forms.NumberInput(attrs={
-                'class': 'form-control item-price',
-                'readonly': 'readonly'
-            }),
         }
     
     def __init__(self, *args, **kwargs):
@@ -879,7 +883,16 @@ class OverTheCounterSaleItemForm(forms.ModelForm):
         # If we have an instance with a medicine, set the initial unit price
         if self.instance and self.instance.medicine_id:
             self.fields['unit_price'].initial = self.instance.medicine.unit_price
-
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        medicine = cleaned_data.get('medicine')
+        
+        # If medicine is selected but unit_price is missing, get it from the medicine
+        if medicine and not cleaned_data.get('unit_price'):
+            cleaned_data['unit_price'] = medicine.unit_price
+            
+        return cleaned_data
 
 # Create a formset for handling multiple medicine items in a sale
 OverTheCounterSaleItemFormSet = inlineformset_factory(

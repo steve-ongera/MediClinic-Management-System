@@ -1,10 +1,11 @@
-<!-- create_otc_sale.html -->
+
 {% extends 'base/base.html' %}
+{% load widget_tweaks %}
 {% load static %}
 
 {% block title %}New Over-the-Counter Sale{% endblock %}
 
-{% block extra_css %}
+{% block content %}
 <style>
     .delete-row {
         color: #dc3545;
@@ -17,9 +18,7 @@
         margin-bottom: 10px;
     }
 </style>
-{% endblock %}
 
-{% block content %}
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h1>New Over-the-Counter Sale</h1>
@@ -123,21 +122,21 @@
                         <div class="row align-items-end">
                             <div class="col-md-4 mb-3">
                                 <label for="{{ form.medicine.id_for_label }}" class="form-label">Medicine</label>
-                                {{ form.medicine }}
+                                {{ form.medicine.as_widget }}
                                 {% if form.medicine.errors %}
                                 <div class="invalid-feedback d-block">{{ form.medicine.errors }}</div>
                                 {% endif %}
                             </div>
                             <div class="col-md-2 mb-3">
                                 <label for="{{ form.quantity.id_for_label }}" class="form-label">Quantity</label>
-                                {{ form.quantity }}
+                                {{ form.quantity.as_widget }}
                                 {% if form.quantity.errors %}
                                 <div class="invalid-feedback d-block">{{ form.quantity.errors }}</div>
                                 {% endif %}
                             </div>
                             <div class="col-md-2 mb-3">
                                 <label for="{{ form.unit_price.id_for_label }}" class="form-label">Unit Price</label>
-                                {{ form.unit_price }}
+                                {{ form.unit_price.as_widget }}
                                 {% if form.unit_price.errors %}
                                 <div class="invalid-feedback d-block">{{ form.unit_price.errors }}</div>
                                 {% endif %}
@@ -168,6 +167,8 @@
                     {{ error }}
                     {% endfor%}
                 </div>
+                {% endif %}  
+            </div>
         </div>
         
         <div class="text-end mt-4">
@@ -178,7 +179,6 @@
     </form>
 </div>
 
-{% block extra_js %}
 <script>
     // Store medicine data from the server
     const medicines = {{ medicines|safe }};
@@ -403,4 +403,4 @@
         updateTotals();
     });
 </script>
-{% endblock %}    
+{% endblock %}

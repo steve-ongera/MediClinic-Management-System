@@ -1,4 +1,3 @@
-
 {% extends 'base/base.html' %}
 {% load widget_tweaks %}
 {% load static %}
@@ -6,178 +5,188 @@
 {% block title %}New Over-the-Counter Sale{% endblock %}
 
 {% block content %}
-<style>
-    .delete-row {
-        color: #dc3545;
-        cursor: pointer;
-    }
-    .formset-row {
-        background-color: #f8f9fa;
-        padding: 15px;
-        border-radius: 5px;
-        margin-bottom: 10px;
-    }
-</style>
+<div class="message-container" id="system-messages">
+  {% for message in messages %}
+  <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+</div>
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>New Over-the-Counter Sale</h1>
-        <a href="{% url 'otc_sale_list' %}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Sales
-        </a>
-    </div>
-    
-    {% if messages %}
-    <div class="messages">
-        {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        {% endfor %}
-    </div>
-    {% endif %}
-    
-    <form method="post" id="otc-sale-form">
-        {% csrf_token %}
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Customer Information</h5>
+<div class="pagetitle">
+    <h1>New Over-the-Counter Sale</h1>
+    <nav>
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">Home</a></li>
+        <li class="breadcrumb-item">Sales</li>
+        <li class="breadcrumb-item active">OTC Sale</li>
+      </ol>
+    </nav>
+</div><!-- End Page Title -->
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+            <form method="post" id="otc-sale-form">
+                {% csrf_token %}
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="card" style="border-left: 5px solid #1a76d1;">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-person-lines-fill"></i> Customer Information</h5>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.customer_name.id_for_label }}" class="form-label">Customer Name</label>
+                                        {% render_field form.customer_name class="form-control" %}
+                                        {% if form.customer_name.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.customer_name.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="{{ form.mpesa_code.id_for_label }}" class="form-label">M-PESA Code</label>
+                                        {% render_field form.mpesa_code class="form-control" placeholder="Optional" %}
+                                        {% if form.mpesa_code.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.mpesa_code.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="{{ form.payment_status.id_for_label }}" class="form-label">Payment Status</label>
+                                        {% render_field form.payment_status class="form-select" %}
+                                        {% if form.payment_status.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.payment_status.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="{{ form.notes.id_for_label }}" class="form-label">Notes</label>
+                                    {% render_field form.notes class="form-control" rows="2" placeholder="Optional notes" %}
+                                    {% if form.notes.errors %}
+                                    <div class="invalid-feedback d-block">{{ form.notes.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="{{ form.customer_name.id_for_label }}" class="form-label">Customer Name</label>
-                                {{ form.customer_name }}
-                                {% if form.customer_name.errors %}
-                                <div class="invalid-feedback d-block">{{ form.customer_name.errors }}</div>
-                                {% endif %}
+                    
+                    <div class="col-md-6">
+                        <div class="card" style="border-left: 5px solid #4CAF50;">
+                            <div class="card-body">
+                                <h5 class="card-title"><i class="bi bi-receipt"></i> Sale Summary</h5>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h5 class="text-success mb-0">Total Amount</h5>
+                                    <h4 class="mb-0" id="grand-total">KSh 0.00</h4>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <p class="mb-0">Items Count:</p>
+                                    <p class="mb-0 fw-bold" id="items-count">0</p>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label for="{{ form.mpesa_code.id_for_label }}" class="form-label">M-PESA Code (if applicable)</label>
-                                {{ form.mpesa_code }}
-                                {% if form.mpesa_code.errors %}
-                                <div class="invalid-feedback d-block">{{ form.mpesa_code.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="{{ form.payment_status.id_for_label }}" class="form-label">Payment Status</label>
-                                {{ form.payment_status }}
-                                {% if form.payment_status.errors %}
-                                <div class="invalid-feedback d-block">{{ form.payment_status.errors }}</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        
-                        <div class="mb-3">
-                            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes (Optional)</label>
-                            {{ form.notes }}
-                            {% if form.notes.errors %}
-                            <div class="invalid-feedback d-block">{{ form.notes.errors }}</div>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <div class="col-md-6">
-                <div class="card shadow mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">Sale Summary</h5>
-                    </div>
+                
+                <div class="card" style="border-left: 5px solid #2196F3;">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h3 class="text-success mb-0">Total Amount</h3>
-                            <h3 class="mb-0" id="grand-total">KSh 0.00</h3>
+                            <h5 class="card-title mb-0"><i class="bi bi-capsule"></i> Medicine Items</h5>
+                            <button type="button" id="add-row" class="btn btn-primary btn-sm">
+                                <i class="bi bi-plus-circle"></i> Add Item
+                            </button>
                         </div>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <p class="mb-0">Items Count:</p>
-                            <p class="mb-0" id="items-count">0</p>
+                        
+                        {{ formset.management_form }}
+                        
+                        <div id="formset-container">
+                            {% for form in formset %}
+                            <div class="formset-row border rounded p-3 mb-3">
+                                {{ form.id }}
+                                <div class="row align-items-end">
+                                    <div class="col-md-5 mb-3">
+                                        <label for="{{ form.medicine.id_for_label }}" class="form-label">Medicine</label>
+                                        {% render_field form.medicine class="form-select medicine-select" %}
+                                        {% if form.medicine.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.medicine.errors }}</div>
+                                        {% endif %}
+                                        <div class="stock-info small text-muted mt-1"></div>
+                                    </div>
+                                    <div class="col-md-2 mb-3">
+                                        <label for="{{ form.quantity.id_for_label }}" class="form-label">Quantity</label>
+                                        {% render_field form.quantity class="form-control item-quantity" min="1" %}
+                                        {% if form.quantity.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.quantity.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-2 mb-3">
+                                        <label for="{{ form.unit_price.id_for_label }}" class="form-label">Unit Price</label>
+                                        {% render_field form.unit_price class="form-control item-price" %}
+                                        {% if form.unit_price.errors %}
+                                        <div class="invalid-feedback d-block">{{ form.unit_price.errors }}</div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-2 mb-3">
+                                        <label class="form-label">Subtotal</label>
+                                        <input type="text" class="form-control item-subtotal" readonly value="0.00">
+                                    </div>
+                                    <div class="col-md-1 mb-3 d-flex align-items-center justify-content-center">
+                                        <button type="button" class="btn btn-sm btn-outline-danger delete-row" title="Remove item">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                        {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
                         </div>
+                        
+                        {% if formset.non_form_errors %}
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            {% for error in formset.non_form_errors %}
+                            {{ error }}
+                            {% endfor %}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                        {% endif %}  
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <div class="card shadow mb-4">
-            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0">Medicine Items</h5>
-                <button type="button" id="add-row" class="btn btn-light btn-sm">
-                    <i class="fas fa-plus"></i> Add Item
-                </button>
-            </div>
-            <div class="card-body">
-                {{ formset.management_form }}
                 
-                <div id="formset-container">
-                    {% for form in formset %}
-                    <div class="formset-row">
-                        {{ form.id }}
-                        <div class="row align-items-end">
-                            <div class="col-md-4 mb-3">
-                                <label for="{{ form.medicine.id_for_label }}" class="form-label">Medicine</label>
-                                {{ form.medicine.as_widget }}
-                                {% if form.medicine.errors %}
-                                <div class="invalid-feedback d-block">{{ form.medicine.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-2 mb-3">
-                                <label for="{{ form.quantity.id_for_label }}" class="form-label">Quantity</label>
-                                {{ form.quantity.as_widget }}
-                                {% if form.quantity.errors %}
-                                <div class="invalid-feedback d-block">{{ form.quantity.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-2 mb-3">
-                                <label for="{{ form.unit_price.id_for_label }}" class="form-label">Unit Price</label>
-                                {{ form.unit_price.as_widget }}
-                                {% if form.unit_price.errors %}
-                                <div class="invalid-feedback d-block">{{ form.unit_price.errors }}</div>
-                                {% endif %}
-                            </div>
-                            <div class="col-md-2 mb-3">
-                                <label class="form-label">Subtotal</label>
-                                <input type="text" class="form-control item-subtotal" readonly value="0.00">
-                            </div>
-                            <div class="col-md-1 mb-3 d-flex align-items-center">
-                                <span class="delete-row" title="Remove item">
-                                    <i class="fas fa-trash-alt fa-lg"></i>
-                                </span>
-                                {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-md-12">
-                                <div class="stock-info text-muted"></div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
+                <div class="text-end mt-4">
+                    <a href="{% url 'otc_sale_list' %}" class="btn btn-outline-secondary me-2">
+                        <i class="bi bi-arrow-left"></i> Cancel
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Complete Sale
+                    </button>
                 </div>
-                
-                {% if formset.non_form_errors %}
-                <div class="alert alert-danger">
-                    {% for error in formset.non_form_errors %}
-                    {{ error }}
-                    {% endfor%}
-                </div>
-                {% endif %}  
-            </div>
+            </form>
         </div>
-        
-        <div class="text-end mt-4">
-            <button type="submit" class="btn btn-primary btn-lg">
-                <i class="fas fa-save"></i> Complete Sale
-            </button>
-        </div>
-    </form>
-</div>
+    </div>
+</section>
+
+<style>
+    .formset-row {
+        background-color: #f8fafc;
+        transition: all 0.3s ease;
+    }
+    
+    .formset-row:hover {
+        background-color: #f1f5f9;
+    }
+    
+    .stock-info.text-danger {
+        color: #dc3545 !important;
+    }
+    
+    .delete-row {
+        cursor: pointer;
+    }
+</style>
 
 <script>
     // Store medicine data from the server
@@ -228,6 +237,9 @@
                 input.value = '';
             }
         });
+        
+        // Clear stock info
+        emptyForm.querySelector(".stock-info").textContent = '';
         
         // Add delete handler
         emptyForm.querySelector(".delete-row").addEventListener("click", deleteForm);

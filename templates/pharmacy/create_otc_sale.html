@@ -1,0 +1,406 @@
+<!-- create_otc_sale.html -->
+{% extends 'base/base.html' %}
+{% load static %}
+
+{% block title %}New Over-the-Counter Sale{% endblock %}
+
+{% block extra_css %}
+<style>
+    .delete-row {
+        color: #dc3545;
+        cursor: pointer;
+    }
+    .formset-row {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 5px;
+        margin-bottom: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>New Over-the-Counter Sale</h1>
+        <a href="{% url 'otc_sale_list' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Sales
+        </a>
+    </div>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <form method="post" id="otc-sale-form">
+        {% csrf_token %}
+        
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Customer Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.customer_name.id_for_label }}" class="form-label">Customer Name</label>
+                                {{ form.customer_name }}
+                                {% if form.customer_name.errors %}
+                                <div class="invalid-feedback d-block">{{ form.customer_name.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="{{ form.mpesa_code.id_for_label }}" class="form-label">M-PESA Code (if applicable)</label>
+                                {{ form.mpesa_code }}
+                                {% if form.mpesa_code.errors %}
+                                <div class="invalid-feedback d-block">{{ form.mpesa_code.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="{{ form.payment_status.id_for_label }}" class="form-label">Payment Status</label>
+                                {{ form.payment_status }}
+                                {% if form.payment_status.errors %}
+                                <div class="invalid-feedback d-block">{{ form.payment_status.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ form.notes.id_for_label }}" class="form-label">Notes (Optional)</label>
+                            {{ form.notes }}
+                            {% if form.notes.errors %}
+                            <div class="invalid-feedback d-block">{{ form.notes.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="card shadow mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">Sale Summary</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="text-success mb-0">Total Amount</h3>
+                            <h3 class="mb-0" id="grand-total">KSh 0.00</h3>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <p class="mb-0">Items Count:</p>
+                            <p class="mb-0" id="items-count">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card shadow mb-4">
+            <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Medicine Items</h5>
+                <button type="button" id="add-row" class="btn btn-light btn-sm">
+                    <i class="fas fa-plus"></i> Add Item
+                </button>
+            </div>
+            <div class="card-body">
+                {{ formset.management_form }}
+                
+                <div id="formset-container">
+                    {% for form in formset %}
+                    <div class="formset-row">
+                        {{ form.id }}
+                        <div class="row align-items-end">
+                            <div class="col-md-4 mb-3">
+                                <label for="{{ form.medicine.id_for_label }}" class="form-label">Medicine</label>
+                                {{ form.medicine }}
+                                {% if form.medicine.errors %}
+                                <div class="invalid-feedback d-block">{{ form.medicine.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label for="{{ form.quantity.id_for_label }}" class="form-label">Quantity</label>
+                                {{ form.quantity }}
+                                {% if form.quantity.errors %}
+                                <div class="invalid-feedback d-block">{{ form.quantity.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label for="{{ form.unit_price.id_for_label }}" class="form-label">Unit Price</label>
+                                {{ form.unit_price }}
+                                {% if form.unit_price.errors %}
+                                <div class="invalid-feedback d-block">{{ form.unit_price.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">Subtotal</label>
+                                <input type="text" class="form-control item-subtotal" readonly value="0.00">
+                            </div>
+                            <div class="col-md-1 mb-3 d-flex align-items-center">
+                                <span class="delete-row" title="Remove item">
+                                    <i class="fas fa-trash-alt fa-lg"></i>
+                                </span>
+                                {% if form.instance.pk %}{{ form.DELETE }}{% endif %}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="stock-info text-muted"></div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if formset.non_form_errors %}
+                <div class="alert alert-danger">
+                    {% for error in formset.non_form_errors %}
+                    {{ error }}
+                    {% endfor%}
+                </div>
+        </div>
+        
+        <div class="text-end mt-4">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-save"></i> Complete Sale
+            </button>
+        </div>
+    </form>
+</div>
+
+{% block extra_js %}
+<script>
+    // Store medicine data from the server
+    const medicines = {{ medicines|safe }};
+    const medicineMap = {};
+    
+    // Create a lookup for quick access
+    medicines.forEach(med => {
+        medicineMap[med.id] = med;
+    });
+    
+    // Function to update form indexes when rows are added/removed
+    function updateElementIndex(el, prefix, ndx) {
+        const id_regex = new RegExp('(' + prefix + '-\\d+)');
+        const replacement = prefix + '-' + ndx;
+        
+        if (el.getAttribute("for")) {
+            el.setAttribute("for", el.getAttribute("for").replace(id_regex, replacement));
+        }
+        if (el.id) {
+            el.id = el.id.replace(id_regex, replacement);
+        }
+        if (el.name) {
+            el.name = el.name.replace(id_regex, replacement);
+        }
+    }
+    
+    // Function to clone and add a new formset row
+    function addForm(event) {
+        event.preventDefault();
+        
+        const totalForms = document.querySelector("#id_items-TOTAL_FORMS");
+        const currentFormCount = parseInt(totalForms.value);
+        
+        // Clone the first form
+        const formsetContainer = document.querySelector("#formset-container");
+        const emptyForm = formsetContainer.querySelector(".formset-row:first-child").cloneNode(true);
+        
+        // Update IDs and names
+        const formRegex = RegExp(`items-(\\d){1}-`,'g');
+        emptyForm.innerHTML = emptyForm.innerHTML.replace(formRegex, `items-${currentFormCount}-`);
+        
+        // Clear values
+        emptyForm.querySelectorAll("input:not([type=hidden]):not([readonly]), select").forEach(input => {
+            if (input.type === 'number') {
+                input.value = '1';
+            } else {
+                input.value = '';
+            }
+        });
+        
+        // Add delete handler
+        emptyForm.querySelector(".delete-row").addEventListener("click", deleteForm);
+        
+        // Add medicine select change handler
+        emptyForm.querySelector(".medicine-select").addEventListener("change", handleMedicineChange);
+        
+        // Add quantity change handler
+        emptyForm.querySelector(".item-quantity").addEventListener("change", updateSubtotal);
+        emptyForm.querySelector(".item-quantity").addEventListener("input", updateSubtotal);
+        
+        // Add the new form to the DOM
+        formsetContainer.appendChild(emptyForm);
+        
+        // Update form count
+        totalForms.value = currentFormCount + 1;
+        
+        // Update totals
+        updateTotals();
+    }
+    
+    // Function to delete a formset row
+    function deleteForm(event) {
+        const totalForms = document.querySelector("#id_items-TOTAL_FORMS");
+        const currentFormCount = parseInt(totalForms.value);
+        
+        // Don't delete if it's the only form
+        if (currentFormCount <= 1) {
+            alert("You need at least one item.");
+            return;
+        }
+        
+        // Get the row
+        const row = event.target.closest('.formset-row');
+        
+        // If this is an existing instance, mark for deletion instead of removing
+        const deleteInput = row.querySelector('input[name$="-DELETE"]');
+        if (deleteInput) {
+            deleteInput.checked = true;
+            row.style.display = 'none';
+        } else {
+            // Otherwise remove it from DOM
+            row.remove();
+            
+            // Update form indexes for all remaining forms
+            const formRows = document.querySelectorAll("#formset-container .formset-row");
+            for (let i = 0; i < formRows.length; i++) {
+                const formRow = formRows[i];
+                formRow.querySelectorAll("input, select, label").forEach(input => {
+                    updateElementIndex(input, "items", i);
+                });
+            }
+            
+            // Update form count
+            totalForms.value = currentFormCount - 1;
+        }
+        
+        // Update totals
+        updateTotals();
+    }
+    
+    // Function to handle medicine selection change
+    function handleMedicineChange(event) {
+        const select = event.target;
+        const row = select.closest(".formset-row");
+        const medicineId = parseInt(select.value);
+        
+        // Get fields
+        const priceInput = row.querySelector(".item-price");
+        const quantityInput = row.querySelector(".item-quantity");
+        const stockInfo = row.querySelector(".stock-info");
+        
+        if (medicineId && medicineMap[medicineId]) {
+            const medicine = medicineMap[medicineId];
+            
+            // Set unit price and stock info
+            priceInput.value = medicine.unit_price;
+            stockInfo.textContent = `Available Stock: ${medicine.quantity_in_stock}`;
+            
+            // Set max quantity
+            quantityInput.max = medicine.quantity_in_stock;
+            
+            // Ensure quantity isn't greater than stock
+            if (parseInt(quantityInput.value) > medicine.quantity_in_stock) {
+                quantityInput.value = medicine.quantity_in_stock;
+            }
+            
+            // If stock is low, add a warning
+            if (medicine.quantity_in_stock < 5) {
+                stockInfo.classList.add("text-danger");
+            } else {
+                stockInfo.classList.remove("text-danger");
+            }
+        } else {
+            // Clear fields
+            priceInput.value = "";
+            stockInfo.textContent = "";
+            quantityInput.max = "";
+        }
+        
+        // Update subtotal
+        updateSubtotal(null, row);
+    }
+    
+    // Function to update subtotal
+    function updateSubtotal(event, targetRow = null) {
+        const row = targetRow || (event ? event.target.closest('.formset-row') : null);
+        
+        if (row) {
+            const quantity = parseInt(row.querySelector('.item-quantity').value) || 0;
+            const price = parseFloat(row.querySelector('.item-price').value) || 0;
+            const subtotal = quantity * price;
+            
+            row.querySelector('.item-subtotal').value = subtotal.toFixed(2);
+        }
+        
+        // Update grand total
+        updateTotals();
+    }
+    
+    // Function to update grand total and item count
+    function updateTotals() {
+        let grandTotal = 0;
+        let itemCount = 0;
+        
+        // Sum up all visible subtotals
+        document.querySelectorAll('.formset-row:not([style*="display: none"])').forEach(row => {
+            const subtotalInput = row.querySelector('.item-subtotal');
+            const quantityInput = row.querySelector('.item-quantity');
+            
+            if (subtotalInput && subtotalInput.value) {
+                grandTotal += parseFloat(subtotalInput.value);
+            }
+            
+            if (quantityInput && quantityInput.value) {
+                itemCount += parseInt(quantityInput.value);
+            }
+        });
+        
+        // Update the UI
+        document.querySelector('#grand-total').textContent = `KSh ${grandTotal.toFixed(2)}`;
+        document.querySelector('#items-count').textContent = itemCount;
+    }
+    
+    // Add event listeners when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Add row button
+        document.querySelector('#add-row').addEventListener('click', addForm);
+        
+        // Delete row buttons
+        document.querySelectorAll('.delete-row').forEach(button => {
+            button.addEventListener('click', deleteForm);
+        });
+        
+        // Medicine select change
+        document.querySelectorAll('.medicine-select').forEach(select => {
+            select.addEventListener('change', handleMedicineChange);
+            
+            // Trigger initial update
+            if (select.value) {
+                const event = new Event('change');
+                select.dispatchEvent(event);
+            }
+        });
+        
+        // Quantity change/input
+        document.querySelectorAll('.item-quantity').forEach(input => {
+            input.addEventListener('change', updateSubtotal);
+            input.addEventListener('input', updateSubtotal);
+        });
+        
+        // Calculate initial totals
+        updateTotals();
+    });
+</script>
+{% endblock %}    

@@ -2414,3 +2414,155 @@ class CreateMedicineSaleFromConsultation(View):
             'patient': patient,
         }
         return render(request, self.template_name, context)
+    
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.views.generic import ListView, DetailView, View
+from django.db import transaction
+from django.urls import reverse
+from django.utils import timezone
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.http import JsonResponse
+
+from .models import OverTheCounterSale, OverTheCounterSaleItem, Medicine
+from .forms import OverTheCounterSaleForm, OverTheCounterSaleItemFormSet
+
+import logging
+logger = logging.getLogger(__name__)
+
+
+class OverTheCounterSaleListView(LoginRequiredMixin, ListView):
+    """View to list all over-the-counter sales."""
+    model = OverTheCounterSale
+    template_name = 'pharmacy/otc_sale_list.html'
+    context_object_name = 'sales'
+    paginate_by = 10
+    ordering = ['-created_at']
+
+
+class OverTheCounterSaleDetailView(LoginRequiredMixin, DetailView):
+    """View to display details of a specific over-the-counter sale."""
+    model = OverTheCounterSale
+    template_name = 'pharmacy/otc_sale_detail.html'
+    context_object_name = 'sale'
+
+
+class CreateOverTheCounterSaleView(LoginRequiredMixin, View):
+    """View to create a new over-the-counter sale."""
+    template_name = 'pharmacy/create_otc_sale.html'
+    
+    def get(self, request, *args, **kwargs):
+        """Handle GET requests: display the sale form and an empty formset."""
+        form = OverTheCounterSaleForm()
+        formset = OverTheCounterSaleItemFormSet(prefix='items')
+        medicines = Medicine.objects.filter(quantity_in_stock__gt=0).values('id', 'name', 'unit_price', 'quantity_in_stock')
+        
+        context = {
+            'form': form,
+            'formset': formset,
+            'medicines': list(medicines),  # Convert to list for JSON serialization in template
+        }
+        return render(request, self.template_name, context)
+    
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        """Handle POST requests: process the form and formset data."""
+        form = OverTheCounterSaleForm(request.POST)
+        formset = OverTheCounterSaleItemFormSet(request.POST, prefix='items')
+        
+        if form.is_valid() and formset.is_valid():
+            try:
+                # Save the sale but don't commit yet
+                sale = form.save(commit=False)
+                sale.cashier = request.user
+                
+                # Calculate total amount from formset
+                total_amount = 0
+                for form in formset:
+                    if form.cleaned_data and not form.cleaned_data.get('DELETE', False):
+                        medicine = form.cleaned_data.get('medicine')
+                        quantity = form.cleaned_data.get('quantity', 0)
+                        unit_price = form.cleaned_data.get('unit_price', 0)
+                        total_amount += quantity * unit_price
+                
+                sale.total_amount = total_amount
+                sale.save()
+                logger.info(f"Created OTC sale with ID: {sale.sale_id}")
+                
+                # Now save the formset (sale items)
+                instances = formset.save(commit=False)
+                
+                # Check for sufficient stock and update medicine quantities
+                for instance in instances:
+                    if instance.medicine.quantity_in_stock < instance.quantity:
+                        raise ValueError(f"Insufficient stock for {instance.medicine.name}")
+                    
+                    instance.sale = sale
+                    instance.save()
+                    logger.info(f"Added item: {instance.quantity} x {instance.medicine.name}")
+                    
+                    # Update medicine stock
+                    medicine = instance.medicine
+                    medicine.quantity_in_stock -= instance.quantity
+                    medicine.save()
+                    logger.info(f"Updated stock for {medicine.name}: {medicine.quantity_in_stock}")
+                
+                # Process any formset deletions (shouldn't be needed for a new sale, but included for completeness)
+                for obj in formset.deleted_objects:
+                    obj.delete()
+                
+                messages.success(request, f'Over-the-counter sale {sale.sale_id} created successfully!')
+                return redirect('otc_sale_detail', pk=sale.pk)
+                
+            except ValueError as e:
+                messages.error(request, str(e))
+                transaction.set_rollback(True)
+            except Exception as e:
+                logger.error(f"Error creating OTC sale: {str(e)}")
+                messages.error(request, f"An error occurred: {str(e)}")
+                transaction.set_rollback(True)
+        else:
+            if not form.is_valid():
+                logger.error(f"Form errors: {form.errors}")
+                messages.error(request, f"Form validation failed: {form.errors}")
+            if not formset.is_valid():  
+                logger.error(f"Formset errors: {formset.errors}, {formset.non_form_errors()}")
+                messages.error(request, f"Item validation failed. Please check quantities and selections.")
+        
+        # If we get here, something went wrong - reload the form with current data
+        medicines = Medicine.objects.filter(quantity_in_stock__gt=0).values('id', 'name', 'unit_price', 'quantity_in_stock')
+        context = {
+            'form': form,
+            'formset': formset,
+            'medicines': list(medicines),
+        }
+        return render(request, self.template_name, context)
+
+
+class GetMedicineInfoView(LoginRequiredMixin, View):
+    """API view to get medicine details for AJAX requests."""
+    
+    def get(self, request, *args, **kwargs):
+        medicine_id = request.GET.get('medicine_id')
+        
+        try:
+            medicine = Medicine.objects.get(id=medicine_id)
+            data = {
+                'unit_price': float(medicine.unit_price),
+                'quantity_in_stock': medicine.quantity_in_stock,
+                'success': True
+            }
+            return JsonResponse(data)
+        except Medicine.DoesNotExist:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Medicine not found'
+            }, status=404)
+        except Exception as e:
+            logger.error(f"Error fetching medicine info: {str(e)}")
+            return JsonResponse({
+                'success': False,
+                'error': str(e)
+            }, status=500)

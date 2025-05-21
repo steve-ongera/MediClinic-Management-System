@@ -815,3 +815,19 @@ class PasswordChangeForm(forms.Form):
         self.user.save()
         return self.user
     
+
+
+from django import forms
+from django.db import transaction
+from .models import *
+
+class MedicineSaleForm(forms.ModelForm):
+    consultation_code = forms.CharField(max_length=10, required=True)
+    
+    class Meta:
+        model = MedicineSale
+        fields = ['patient', 'receptionist', 'payment_method', 'mpesa_number', 'mpesa_code', 'notes']
+        widgets = {
+            'patient': forms.HiddenInput(),
+            'receptionist': forms.HiddenInput(),
+        }

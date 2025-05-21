@@ -84,6 +84,7 @@ urlpatterns = [
     path('clinic-settings/', views.clinic_settings, name='clinic_settings'),
     path('forgot-password/', views.forgot_password, name='forgot_password'),
     path('reset-password/<uidb64>/<token>/', views.reset_password, name='reset_password'),
-    
+    path('sales/create-from-consultation/', views.CreateMedicineSaleFromConsultation.as_view(), 
+         name='create_sale_from_consultation'),
 
 ]

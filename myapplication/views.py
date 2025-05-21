@@ -2227,3 +2227,105 @@ def receptionist_dashboard(request):
     }
     
     return render(request, 'dashboard/receptionist_dashboard.html', context)
+
+
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from django.views.generic import View
+from django.db import transaction
+from .forms import *
+
+class CreateMedicineSaleFromConsultation(View):
+    template_name = 'pharmacy/create_sale_from_consultation.html'
+    
+    def get(self, request, *args, **kwargs):
+        form = MedicineSaleForm()
+        consultation_code = request.GET.get('consultation_code', '')
+        prescriptions = []
+        total_amount = 0
+        
+        if consultation_code:
+            try:
+                consultation = Consultation.objects.get(consultation_code=consultation_code)
+                prescriptions = Prescription.objects.filter(consultation=consultation)
+                
+                # Calculate total amount
+                total_amount = sum(
+                    prescription.quantity * prescription.medicine.unit_price 
+                    for prescription in prescriptions
+                )
+                
+                # Initialize form with patient data
+                form = MedicineSaleForm(initial={
+                    'patient': consultation.appointment.patient,
+                    'receptionist': request.user,
+                })
+                
+            except Consultation.DoesNotExist:
+                messages.error(request, 'Consultation with this code does not exist')
+        
+        context = {
+            'form': form,
+            'consultation_code': consultation_code,
+            'prescriptions': prescriptions,
+            'total_amount': total_amount,
+        }
+        return render(request, self.template_name, context)
+    
+    @transaction.atomic
+    def post(self, request, *args, **kwargs):
+        form = MedicineSaleForm(request.POST)
+        consultation_code = request.POST.get('consultation_code', '')
+        
+        if not consultation_code:
+            messages.error(request, 'Consultation code is required')
+            return redirect('create_sale_from_consultation')
+        
+        try:
+            consultation = Consultation.objects.get(consultation_code=consultation_code)
+            prescriptions = Prescription.objects.filter(consultation=consultation)
+            
+            if not prescriptions.exists():
+                messages.error(request, 'No prescriptions found for this consultation')
+                return redirect('create_sale_from_consultation')
+            
+            if form.is_valid():
+                # Create the MedicineSale
+                medicine_sale = form.save(commit=False)
+                medicine_sale.total_amount = sum(
+                    prescription.quantity * prescription.medicine.unit_price 
+                    for prescription in prescriptions
+                )
+                medicine_sale.save()
+                
+                # Create SoldMedicine records for each prescription
+                for prescription in prescriptions:
+                    SoldMedicine.objects.create(
+                        sale=medicine_sale,
+                        medicine=prescription.medicine,
+                        quantity=prescription.quantity,
+                        unit_price=prescription.medicine.unit_price
+                    )
+                    
+                    # Update medicine stock
+                    medicine = prescription.medicine
+                    medicine.quantity_in_stock -= prescription.quantity
+                    medicine.save()
+                
+                messages.success(request, f'Medicine sale #{medicine_sale.id} created successfully')
+                return redirect('medicine_sale_detail', pk=medicine_sale.id)
+            
+        except Consultation.DoesNotExist:
+            messages.error(request, 'Consultation with this code does not exist')
+        
+        # If we get here, something went wrong
+        context = {
+            'form': form,
+            'consultation_code': consultation_code,
+            'prescriptions': prescriptions,
+            'total_amount': sum(
+                prescription.quantity * prescription.medicine.unit_price 
+                for prescription in prescriptions
+            ) if 'prescriptions' in locals() else 0,
+        }
+        return render(request, self.template_name, context)

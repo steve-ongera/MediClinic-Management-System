@@ -1,0 +1,140 @@
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">Create Medicine Sale from Consultation</h3>
+    </div>
+    <div class="card-body">
+        <form method="get" class="mb-4">
+            <div class="form-row">
+                <div class="form-group col-md-8">
+                    <label for="consultation_code_search">Consultation Code</label>
+                    <input type="text" id="consultation_code_search" name="consultation_code" 
+                           class="form-control" placeholder="Enter Consultation Code" 
+                           value="{{ consultation_code }}">
+                </div>
+                <div class="form-group col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary">Search</button>
+                </div>
+            </div>
+        </form>
+
+        {% if consultation_code %}
+            {% if prescriptions %}
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Medicine</th>
+                                <th>Quantity</th>
+                                <th>Unit Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prescription in prescriptions %}
+                            <tr>
+                                <td>{{ prescription.medicine.name }}</td>
+                                <td>{{ prescription.quantity }}</td>
+                                <td>Ksh {{ prescription.medicine.unit_price|floatformat:2 }}</td>
+                                <td>Ksh {{ prescription.get_total_price|floatformat:2 }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="font-weight-bold">
+                            <tr>
+                                <td colspan="3" class="text-right">Total Amount</td>
+                                <td>Ksh {{ total_amount|floatformat:2 }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    <input type="hidden" name="consultation_code" value="{{ consultation_code }}">
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="patient">Patient</label>
+                            <input type="text" id="patient" class="form-control" 
+                                   value="{{ form.instance.patient }}" readonly>
+                            <input type="hidden" name="patient" value="{{ form.instance.patient.id }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="receptionist">Receptionist</label>
+                            <input type="text" id="receptionist" class="form-control" 
+                                   value="{{ request.user.get_full_name }}" readonly>
+                            <input type="hidden" name="receptionist" value="{{ request.user.id }}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            <label for="payment_method">Payment Method</label>
+                            <select id="payment_method" name="payment_method" class="form-control" required>
+                                <option value="">Select Payment Method</option>
+                                <option value="CASH" {% if form.payment_method.value == 'CASH' %}selected{% endif %}>Cash</option>
+                                <option value="MPESA" {% if form.payment_method.value == 'MPESA' %}selected{% endif %}>M-Pesa</option>
+                                <option value="INSURANCE" {% if form.payment_method.value == 'INSURANCE' %}selected{% endif %}>Insurance</option>
+                                <option value="CREDIT" {% if form.payment_method.value == 'CREDIT' %}selected{% endif %}>Credit</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="total_amount">Total Amount</label>
+                            <input type="text" id="total_amount" class="form-control" 
+                                   value="Ksh {{ total_amount|floatformat:2 }}" readonly>
+                        </div>
+                    </div>
+                    
+                    <div id="mpesa_fields" class="form-row" style="display: none;">
+                        <div class="form-group col-md-6">
+                            <label for="mpesa_number">M-Pesa Number</label>
+                            <input type="text" id="mpesa_number" name="mpesa_number" 
+                                   class="form-control" value="{{ form.mpesa_number.value|default_if_none:'' }}">
+                        </div>
+                        <div class="form-group col-md-6">
+                            <label for="mpesa_code">M-Pesa Transaction Code</label>
+                            <input type="text" id="mpesa_code" name="mpesa_code" 
+                                   class="form-control" value="{{ form.mpesa_code.value|default_if_none:'' }}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="notes">Notes</label>
+                        <textarea id="notes" name="notes" class="form-control" 
+                                  rows="2">{{ form.notes.value|default_if_none:'' }}</textarea>
+                    </div>
+                    
+                    <div class="form-group mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-check-circle"></i> Complete Sale
+                        </button>
+                        <a href="{% url 'create_sale_from_consultation' %}" class="btn btn-outline-secondary ml-2">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+                
+                <script>
+                    // Show/hide M-Pesa fields based on payment method selection
+                    document.getElementById('payment_method').addEventListener('change', function() {
+                        const mpesaFields = document.getElementById('mpesa_fields');
+                        mpesaFields.style.display = this.value === 'MPESA' ? 'flex' : 'none';
+                    });
+                    
+                    // Trigger change event on page load in case MPESA is already selected
+                    document.addEventListener('DOMContentLoaded', function() {
+                        document.getElementById('payment_method').dispatchEvent(new Event('change'));
+                    });
+                </script>
+            {% else %}
+                <div class="alert alert-warning">
+                    No prescriptions found for consultation code: <strong>{{ consultation_code }}</strong>
+                </div>
+            {% endif %}
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

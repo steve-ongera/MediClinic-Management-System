@@ -830,3 +830,64 @@ class MedicineSaleForm(forms.ModelForm):
             'patient': forms.HiddenInput(),
             'receptionist': forms.HiddenInput(),
         }
+
+from django import forms
+from django.forms import inlineformset_factory
+from .models import OverTheCounterSale, OverTheCounterSaleItem, Medicine
+
+
+class OverTheCounterSaleForm(forms.ModelForm):
+    """Form for creating an over-the-counter sale."""
+    
+    class Meta:
+        model = OverTheCounterSale
+        fields = ['customer_name', 'mpesa_code', 'notes', 'payment_status']
+        widgets = {
+            'customer_name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Customer Name'}),
+            'mpesa_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'M-PESA Transaction Code'}),
+            'notes': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Additional notes'}),
+            'payment_status': forms.Select(attrs={'class': 'form-control'}),
+        }
+
+
+class OverTheCounterSaleItemForm(forms.ModelForm):
+    """Form for adding items to an over-the-counter sale."""
+    
+    medicine = forms.ModelChoiceField(
+        queryset=Medicine.objects.filter(quantity_in_stock__gt=0),
+        widget=forms.Select(attrs={'class': 'form-control medicine-select'})
+    )
+    
+    class Meta:
+        model = OverTheCounterSaleItem
+        fields = ['medicine', 'quantity', 'unit_price']
+        widgets = {
+            'quantity': forms.NumberInput(attrs={
+                'class': 'form-control item-quantity',
+                'min': '1',
+                'step': '1'
+            }),
+            'unit_price': forms.NumberInput(attrs={
+                'class': 'form-control item-price',
+                'readonly': 'readonly'
+            }),
+        }
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        
+        # If we have an instance with a medicine, set the initial unit price
+        if self.instance and self.instance.medicine_id:
+            self.fields['unit_price'].initial = self.instance.medicine.unit_price
+
+
+# Create a formset for handling multiple medicine items in a sale
+OverTheCounterSaleItemFormSet = inlineformset_factory(
+    OverTheCounterSale,
+    OverTheCounterSaleItem,
+    form=OverTheCounterSaleItemForm,
+    extra=1,  # Start with one empty form
+    can_delete=True,
+    min_num=1,  # Require at least one item
+    validate_min=True,
+)

@@ -13,7 +13,7 @@ from django.db.models.functions import Trunc
 from datetime import datetime, timedelta
 from django.utils import timezone
 import json
-
+from django.contrib.auth.decorators import login_required
 from .models import *
 
 
@@ -71,7 +71,7 @@ def logout_view(request):
     return redirect('login')  # Change 'login' to your login view name or URL
 
 
-
+@login_required
 def admin_dashboard_view(request):
     date_filter = request.GET.get('date_filter', 'month')
     
@@ -180,6 +180,7 @@ import datetime
 from .models import Patient
 from .forms import PatientForm
 
+@login_required
 def patient_list(request):
     """View function for listing all patients with pagination."""
     patients_list = Patient.objects.all()
@@ -205,6 +206,8 @@ def patient_list(request):
     }
     return render(request, 'patients/patient_list.html', context)
 
+
+@login_required
 def patient_create(request):
     """View function for creating a new patient."""
     if request.method == 'POST':
@@ -222,6 +225,8 @@ def patient_create(request):
     }
     return render(request, 'patients/patient_form.html', context)
 
+
+@login_required
 def patient_update(request, pk):
     """View function for updating an existing patient."""
     patient = get_object_or_404(Patient, pk=pk)
@@ -242,6 +247,7 @@ def patient_update(request, pk):
     }
     return render(request, 'patients/patient_form.html', context)
 
+@login_required
 def patient_delete(request, pk):
     """View function for deleting a patient."""
     patient = get_object_or_404(Patient, pk=pk)
@@ -256,6 +262,8 @@ def patient_delete(request, pk):
     }
     return render(request, 'patients/patient_confirm_delete.html', context)
 
+
+@login_required
 def patient_detail_ajax(request, pk):
     """View function for retrieving patient details via AJAX."""
     import datetime  # Correct import method 1
@@ -294,6 +302,8 @@ def patient_detail_ajax(request, pk):
     
     return JsonResponse(data)
 
+
+@login_required
 def update_patient_ajax(request, pk):
     """View function for updating patient details via AJAX."""
     patient = get_object_or_404(Patient, pk=pk)
@@ -308,6 +318,8 @@ def update_patient_ajax(request, pk):
     
     return JsonResponse({'success': False, 'message': 'Invalid request'}, status=400)
 
+
+@login_required
 def delete_patient_ajax(request, pk):
     """View function for deleting patient via AJAX."""
     if request.method == 'POST':
@@ -326,6 +338,7 @@ from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
 from .models import Medicine, MedicineCategory
+
 
 
 class MedicineListView(LoginRequiredMixin, ListView):
@@ -360,6 +373,8 @@ class MedicineListView(LoginRequiredMixin, ListView):
 from django.http import JsonResponse, Http404
 from .models import Medicine  # adjust as per your model import
 
+
+@login_required
 def get_medicine_detail(request, pk):
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
         try:
@@ -382,6 +397,7 @@ def get_medicine_detail(request, pk):
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
 
+@login_required
 def update_medicine_ajax(request, pk):
     if request.method == "POST" and request.headers.get('x-requested-with') == 'XMLHttpRequest':
         try:
@@ -411,6 +427,7 @@ class MedicineDetailView(LoginRequiredMixin, DetailView):
     context_object_name = 'medicine'
 
 
+
 class MedicineCreateView(LoginRequiredMixin, CreateView):
     """View for creating a new medicine"""
     model = Medicine
@@ -425,6 +442,7 @@ class MedicineCreateView(LoginRequiredMixin, CreateView):
         context['title'] = 'Add New Medicine'
         context['button_text'] = 'Add Medicine'
         return context
+
 
 
 class MedicineUpdateView(LoginRequiredMixin, UpdateView):
@@ -443,6 +461,7 @@ class MedicineUpdateView(LoginRequiredMixin, UpdateView):
         return context
 
 
+
 class MedicineDeleteView(LoginRequiredMixin, DeleteView):
     """View for deleting a medicine"""
     model = Medicine
@@ -450,6 +469,8 @@ class MedicineDeleteView(LoginRequiredMixin, DeleteView):
     success_url = reverse_lazy('medicines-list')
 
 
+
+@login_required
 # API endpoint for medicine details (for AJAX requests)
 def medicine_detail_api(request, pk):
     """API endpoint for getting medicine details via AJAX"""
@@ -474,12 +495,16 @@ def medicine_detail_api(request, pk):
     return JsonResponse(data)
 
 
+
+
 # Category related views
 class CategoryListView(LoginRequiredMixin, ListView):
     """View for displaying all medicine categories"""
     model = MedicineCategory
     template_name = 'medicines/category_list.html'
     context_object_name = 'categories'
+
+
 
 
 class CategoryCreateView(LoginRequiredMixin, CreateView):
@@ -496,6 +521,7 @@ class CategoryCreateView(LoginRequiredMixin, CreateView):
         return context
 
 
+
 class CategoryUpdateView(LoginRequiredMixin, UpdateView):
     """View for updating an existing medicine category"""
     model = MedicineCategory
@@ -508,6 +534,8 @@ class CategoryUpdateView(LoginRequiredMixin, UpdateView):
         context['title'] = 'Edit Category'
         context['button_text'] = 'Update Category'
         return context
+
+
 
 
 class CategoryDeleteView(LoginRequiredMixin, DeleteView):
@@ -682,6 +710,8 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from .models import Consultation
 
+
+@login_required
 def consultation_list(request):
     # Search functionality
     search_query = request.GET.get('search', '')
@@ -712,6 +742,8 @@ def consultation_list(request):
     }
     return render(request, 'consultations/consultation_list.html', context)
 
+
+@login_required
 def delete_consultation(request, pk):
     consultation = get_object_or_404(Consultation, pk=pk)
     
@@ -728,12 +760,14 @@ def delete_consultation(request, pk):
     return render(request, 'consultations/confirm_delete.html', {'consultation': consultation})
 
 
+
 from django.shortcuts import render, get_object_or_404
 from django.db.models import Q
 from django.core.paginator import Paginator
 from .models import MedicineSale, SoldMedicine
 from datetime import datetime, timedelta
 
+@login_required
 def medicine_sales_list(request):
     # Get filter parameters
     date_range = request.GET.get('date_range', 'today')
@@ -810,6 +844,7 @@ from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
 from .models import PatientMedicalHistory, Patient
 
+@login_required
 def all_medical_records(request):
     records = PatientMedicalHistory.objects.all().order_by('-date_recorded')
     
@@ -824,6 +859,8 @@ def all_medical_records(request):
     }
     return render(request, 'medical_history/all_medical_records.html', context)
 
+
+@login_required
 def patient_medical_history(request, patient_id):
     patient = get_object_or_404(Patient, id=patient_id)
     medical_history = PatientMedicalHistory.objects.filter(patient=patient).order_by('-date_recorded')
@@ -856,6 +893,8 @@ from django.shortcuts import render, get_object_or_404
 from django.views.generic import ListView, DetailView
 from .models import Medicine
 from django.db.models import Q
+
+
 
 class MedicineStockListView(ListView):
     model = Medicine
@@ -911,6 +950,8 @@ def low_stock_medicines(request):
 from django.shortcuts import render, get_object_or_404
 from .models import MedicineCategory, Medicine
 
+
+@login_required
 def medicine_category_list(request):
     categories = MedicineCategory.objects.all().order_by('name')
     
@@ -923,6 +964,8 @@ def medicine_category_list(request):
     }
     return render(request, 'medicines/category_list.html', context)
 
+
+@login_required
 def medicine_category_detail(request, category_id):
     category = get_object_or_404(MedicineCategory, pk=category_id)
     medicines = Medicine.objects.filter(category=category).order_by('name')
@@ -954,6 +997,7 @@ from .models import Doctor
 from .forms import DoctorForm  # You'll need to create this form
 
 
+@login_required
 def doctor_list(request):
     """
     Function-based view to display a list of all doctors with search and pagination.
@@ -998,6 +1042,8 @@ def doctor_list(request):
     return render(request, 'doctors/doctor_list.html', context)
 
 
+
+@login_required
 def doctor_detail(request, pk):
     """
     Function-based view to display detailed information about a specific doctor.
@@ -1011,6 +1057,8 @@ def doctor_detail(request, pk):
     return render(request, 'doctors/doctor_detail.html', context)
 
 
+
+@login_required
 def doctor_add(request):
     """
     Function-based view to add a new doctor.
@@ -1034,6 +1082,8 @@ def doctor_add(request):
     return render(request, 'doctors/doctor_form.html', context)
 
 
+
+@login_required
 def doctor_edit(request, pk):
     """
     Function-based view to edit an existing doctor.
@@ -1060,6 +1110,8 @@ def doctor_edit(request, pk):
     return render(request, 'doctors/doctor_form.html', context)
 
 
+
+@login_required
 def doctor_delete(request, pk):
     """
     Function-based view to delete a doctor (with confirmation).
@@ -1086,6 +1138,8 @@ from datetime import timedelta
 import json
 from .models import MedicineSale, SoldMedicine, Medicine
 
+
+@login_required
 def financial_reports(request):
     # Time periods
     end_date = timezone.now()
@@ -1163,6 +1217,8 @@ from django.utils import timezone
 from datetime import timedelta
 from .models import Consultation, Disease
 
+
+@login_required
 def clinical_reports(request):
     # Date ranges
     end_date = timezone.now().date()
@@ -1259,6 +1315,8 @@ from datetime import timedelta
 import json
 from .models import Medicine, MedicineCategory, SoldMedicine
 
+
+@login_required
 def inventory_reports(request):
     # Current inventory status
     inventory_status = Medicine.objects.annotate(
@@ -1451,6 +1509,8 @@ from datetime import datetime, timedelta, date
 import calendar
 from .models import Doctor, Appointment, DoctorSchedule, DoctorLeave, WorkloadSummary
 
+
+@login_required
 def doctor_calendar_view(request):
     """Main calendar view for doctors"""
     # Get all doctors for the filter dropdown

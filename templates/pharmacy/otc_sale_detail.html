@@ -1,0 +1,124 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Sale Details - {{ sale.sale_id }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Sale Details</h1>
+        <div>
+            <a href="{% url 'otc_sale_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Sales
+            </a>
+            <button onclick="window.print();" class="btn btn-primary ms-2">
+                <i class="fas fa-print"></i> Print Receipt
+            </button>
+        </div>
+    </div>
+    
+    {% if messages %}
+    <div class="messages">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Sale Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <p class="mb-1"><strong>Sale ID:</strong> {{ sale.sale_id }}</p>
+                        <p class="mb-1"><strong>Customer:</strong> {{ sale.customer_name }}</p>
+                        <p class="mb-1"><strong>Date:</strong> {{ sale.created_at|date:"F d, Y H:i" }}</p>
+                        <p class="mb-1"><strong>Cashier:</strong> {{ sale.cashier.get_full_name|default:sale.cashier.username }}</p>
+                        <p class="mb-1">
+                            <strong>Payment Status:</strong>
+                            {% if sale.payment_status == 'completed' %}
+                            <span class="badge bg-success">Completed</span>
+                            {% elif sale.payment_status == 'pending' %}
+                            <span class="badge bg-warning">Pending</span>
+                            {% else %}
+                            <span class="badge bg-danger">Failed</span>
+                            {% endif %}
+                        </p>
+                        {% if sale.mpesa_code %}
+                        <p class="mb-1"><strong>M-PESA Code:</strong> {{ sale.mpesa_code }}</p>
+                        {% endif %}
+                    </div>
+                    
+                    {% if sale.notes %}
+                    <div class="mb-0">
+                        <strong>Notes:</strong>
+                        <p class="text-muted mb-0">{{ sale.notes }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card shadow mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Sale Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="text-success mb-0">Total Amount</h3>
+                        <h3 class="mb-0">KSh {{ sale.total_amount }}</h3>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <p class="mb-0">Items Sold:</p>
+                        <p class="mb-0">{{ sale.get_items_count }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0">Items Sold</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Medicine</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in sale.get_items %}
+                        <tr>
+                            <td>{{ forloop.counter }}</td>
+                            <td>{{ item.medicine.name }}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>KSh {{ item.unit_price }}</td>
+                            <td>KSh {{ item.subtotal }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="4" class="text-end">Total:</th>
+                            <th>KSh {{ sale.total_amount }}</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -87,4 +87,10 @@ urlpatterns = [
     path('sales/create-from-consultation/', views.CreateMedicineSaleFromConsultation.as_view(), 
          name='create_sale_from_consultation'),
 
+    # Over-the-counter sale URLs
+    path('otc-sales/', views.OverTheCounterSaleListView.as_view(), name='otc_sale_list'),
+    path('otc-sales/<int:pk>/', views.OverTheCounterSaleDetailView.as_view(), name='otc_sale_detail'),
+    path('otc-sales/create/', views.CreateOverTheCounterSaleView.as_view(), name='create_otc_sale'),
+    path('api/medicine-info/', views.GetMedicineInfoView.as_view(), name='get_medicine_info'),
+
 ]

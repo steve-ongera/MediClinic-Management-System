@@ -59,13 +59,13 @@
                         <div class="form-group col-md-6">
                             <label for="patient">Patient</label>
                             <input type="text" id="patient" class="form-control" 
-                                   value="{{ form.instance.patient }}" readonly>
-                            <input type="hidden" name="patient" value="{{ form.instance.patient.id }}">
+                                value="{% if patient %}{{ patient.first_name }} {{ patient.last_name }}{% endif %}" readonly>
+                            <input type="hidden" name="patient" value="{% if patient %}{{ patient.id }}{% endif %}">
                         </div>
                         <div class="form-group col-md-6">
                             <label for="receptionist">Receptionist</label>
                             <input type="text" id="receptionist" class="form-control" 
-                                   value="{{ request.user.get_full_name }}" readonly>
+                                value="{{ request.user.get_full_name }}" readonly>
                             <input type="hidden" name="receptionist" value="{{ request.user.id }}">
                         </div>
                     </div>

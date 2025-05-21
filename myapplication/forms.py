@@ -820,7 +820,6 @@ class PasswordChangeForm(forms.Form):
 from django import forms
 from django.db import transaction
 from .models import *
-
 class MedicineSaleForm(forms.ModelForm):
     consultation_code = forms.CharField(max_length=10, required=True)
     

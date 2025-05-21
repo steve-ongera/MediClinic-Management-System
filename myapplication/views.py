@@ -2233,7 +2233,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.generic import View
 from django.db import transaction
-from .forms import *
+from .models import Consultation, Prescription, MedicineSale, SoldMedicine
+from .forms import MedicineSaleForm
 
 class CreateMedicineSaleFromConsultation(View):
     template_name = 'pharmacy/create_sale_from_consultation.html'
@@ -2243,11 +2244,17 @@ class CreateMedicineSaleFromConsultation(View):
         consultation_code = request.GET.get('consultation_code', '')
         prescriptions = []
         total_amount = 0
+        consultation = None
+        patient = None
         
         if consultation_code:
             try:
-                consultation = Consultation.objects.get(consultation_code=consultation_code)
+                consultation = Consultation.objects.select_related(
+                    'appointment', 'appointment__patient'
+                ).get(consultation_code=consultation_code)
+                
                 prescriptions = Prescription.objects.filter(consultation=consultation)
+                patient = consultation.appointment.patient
                 
                 # Calculate total amount
                 total_amount = sum(
@@ -2257,8 +2264,8 @@ class CreateMedicineSaleFromConsultation(View):
                 
                 # Initialize form with patient data
                 form = MedicineSaleForm(initial={
-                    'patient': consultation.appointment.patient,
-                    'receptionist': request.user,
+                    'patient': patient.id,
+                    'receptionist': request.user.id,
                 })
                 
             except Consultation.DoesNotExist:
@@ -2269,6 +2276,8 @@ class CreateMedicineSaleFromConsultation(View):
             'consultation_code': consultation_code,
             'prescriptions': prescriptions,
             'total_amount': total_amount,
+            'consultation': consultation,
+            'patient': patient,
         }
         return render(request, self.template_name, context)
     
@@ -2282,8 +2291,12 @@ class CreateMedicineSaleFromConsultation(View):
             return redirect('create_sale_from_consultation')
         
         try:
-            consultation = Consultation.objects.get(consultation_code=consultation_code)
+            consultation = Consultation.objects.select_related(
+                'appointment', 'appointment__patient'
+            ).get(consultation_code=consultation_code)
+            
             prescriptions = Prescription.objects.filter(consultation=consultation)
+            patient = consultation.appointment.patient
             
             if not prescriptions.exists():
                 messages.error(request, 'No prescriptions found for this consultation')
@@ -2292,6 +2305,7 @@ class CreateMedicineSaleFromConsultation(View):
             if form.is_valid():
                 # Create the MedicineSale
                 medicine_sale = form.save(commit=False)
+                medicine_sale.patient = patient  # Ensure patient is set
                 medicine_sale.total_amount = sum(
                     prescription.quantity * prescription.medicine.unit_price 
                     for prescription in prescriptions
@@ -2327,5 +2341,6 @@ class CreateMedicineSaleFromConsultation(View):
                 prescription.quantity * prescription.medicine.unit_price 
                 for prescription in prescriptions
             ) if 'prescriptions' in locals() else 0,
+            'patient': patient,
         }
         return render(request, self.template_name, context)

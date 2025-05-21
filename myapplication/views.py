@@ -2228,13 +2228,16 @@ def receptionist_dashboard(request):
     
     return render(request, 'dashboard/receptionist_dashboard.html', context)
 
-
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views.generic import View
 from django.db import transaction
 from .models import Consultation, Prescription, MedicineSale, SoldMedicine
 from .forms import MedicineSaleForm
+import logging
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 class CreateMedicineSaleFromConsultation(View):
     template_name = 'pharmacy/create_sale_from_consultation.html'
@@ -2256,20 +2259,26 @@ class CreateMedicineSaleFromConsultation(View):
                 prescriptions = Prescription.objects.filter(consultation=consultation)
                 patient = consultation.appointment.patient
                 
-                # Calculate total amount
-                total_amount = sum(
-                    prescription.quantity * prescription.medicine.unit_price 
-                    for prescription in prescriptions
-                )
-                
-                # Initialize form with patient data
-                form = MedicineSaleForm(initial={
-                    'patient': patient.id,
-                    'receptionist': request.user.id,
-                })
+                if not prescriptions.exists():
+                    messages.warning(request, 'No prescriptions found for this consultation')
+                else:
+                    # Calculate total amount
+                    total_amount = sum(
+                        prescription.quantity * prescription.medicine.unit_price 
+                        for prescription in prescriptions
+                    )
+                    
+                    # Initialize form with patient data
+                    form = MedicineSaleForm(initial={
+                        'patient': patient.id,
+                        'receptionist': request.user.id,
+                    })
                 
             except Consultation.DoesNotExist:
                 messages.error(request, 'Consultation with this code does not exist')
+            except Exception as e:
+                logger.error(f"Error in get method: {str(e)}")
+                messages.error(request, f'An error occurred: {str(e)}')
         
         context = {
             'form': form,
@@ -2285,62 +2294,123 @@ class CreateMedicineSaleFromConsultation(View):
     def post(self, request, *args, **kwargs):
         form = MedicineSaleForm(request.POST)
         consultation_code = request.POST.get('consultation_code', '')
+        prescriptions = []
+        patient = None
         
+        # Check if consultation code is provided
         if not consultation_code:
             messages.error(request, 'Consultation code is required')
             return redirect('create_sale_from_consultation')
         
         try:
+            # Get consultation and related data
             consultation = Consultation.objects.select_related(
                 'appointment', 'appointment__patient'
             ).get(consultation_code=consultation_code)
             
-            prescriptions = Prescription.objects.filter(consultation=consultation)
+            prescriptions = list(Prescription.objects.select_related('medicine').filter(consultation=consultation))
             patient = consultation.appointment.patient
             
-            if not prescriptions.exists():
+            if not prescriptions:
                 messages.error(request, 'No prescriptions found for this consultation')
-                return redirect('create_sale_from_consultation')
+                context = {
+                    'form': form,
+                    'consultation_code': consultation_code,
+                    'consultation': consultation,
+                    'patient': patient,
+                }
+                return render(request, self.template_name, context)
             
-            if form.is_valid():
-                # Create the MedicineSale
-                medicine_sale = form.save(commit=False)
-                medicine_sale.patient = patient  # Ensure patient is set
-                medicine_sale.total_amount = sum(
-                    prescription.quantity * prescription.medicine.unit_price 
-                    for prescription in prescriptions
-                )
-                medicine_sale.save()
-                
-                # Create SoldMedicine records for each prescription
-                for prescription in prescriptions:
-                    SoldMedicine.objects.create(
-                        sale=medicine_sale,
-                        medicine=prescription.medicine,
-                        quantity=prescription.quantity,
-                        unit_price=prescription.medicine.unit_price
+            # Calculate total amount
+            total_amount = sum(
+                prescription.quantity * prescription.medicine.unit_price 
+                for prescription in prescriptions
+            )
+            
+            # Check for sufficient stock before proceeding
+            insufficient_stock = []
+            for prescription in prescriptions:
+                if prescription.medicine.quantity_in_stock < prescription.quantity:
+                    insufficient_stock.append(
+                        f"{prescription.medicine.name} (needed: {prescription.quantity}, available: {prescription.medicine.quantity_in_stock})"
                     )
-                    
-                    # Update medicine stock
-                    medicine = prescription.medicine
-                    medicine.quantity_in_stock -= prescription.quantity
-                    medicine.save()
-                
-                messages.success(request, f'Medicine sale #{medicine_sale.id} created successfully')
-                return redirect('medicine_sale_detail', pk=medicine_sale.id)
             
+            if insufficient_stock:
+                error_msg = "Insufficient stock for: " + ", ".join(insufficient_stock)
+                messages.error(request, error_msg)
+                context = {
+                    'form': form,
+                    'consultation_code': consultation_code,
+                    'prescriptions': prescriptions,
+                    'total_amount': total_amount,
+                    'consultation': consultation,
+                    'patient': patient,
+                }
+                return render(request, self.template_name, context)
+            
+            # Process the form
+            if form.is_valid():
+                logger.info(f"Form is valid: {form.cleaned_data}")
+                try:
+                    # Create the MedicineSale
+                    medicine_sale = form.save(commit=False)
+                    medicine_sale.patient = patient
+                    medicine_sale.total_amount = total_amount
+                    medicine_sale.save()
+                    logger.info(f"Medicine sale created with ID: {medicine_sale.id}")
+                    
+                    # Create SoldMedicine records for each prescription
+                    for prescription in prescriptions:
+                        sold_medicine = SoldMedicine.objects.create(
+                            sale=medicine_sale,
+                            medicine=prescription.medicine,
+                            quantity=prescription.quantity,
+                            unit_price=prescription.medicine.unit_price
+                        )
+                        logger.info(f"Created SoldMedicine: {sold_medicine.id} for {prescription.medicine.name}")
+                        
+                        # Update medicine stock
+                        medicine = prescription.medicine
+                        medicine.quantity_in_stock -= prescription.quantity
+                        medicine.save()
+                        logger.info(f"Updated stock for {medicine.name}: {medicine.quantity_in_stock}")
+                    
+                    messages.success(request, f'Medicine sale #{medicine_sale.id} created successfully')
+                    return redirect('medicine_sale_detail', pk=medicine_sale.id)
+                    
+                except Exception as e:
+                    logger.error(f"Error saving data: {str(e)}")
+                    messages.error(request, f'Error saving data: {str(e)}')
+                    # Re-render form with context instead of redirecting
+                    context = {
+                        'form': form,
+                        'consultation_code': consultation_code,
+                        'prescriptions': prescriptions,
+                        'total_amount': total_amount,
+                        'consultation': consultation,
+                        'patient': patient,
+                    }
+                    return render(request, self.template_name, context)
+            else:
+                logger.error(f"Form errors: {form.errors}")
+                messages.error(request, f'Form validation failed: {form.errors}')
+                
         except Consultation.DoesNotExist:
             messages.error(request, 'Consultation with this code does not exist')
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            messages.error(request, f'An unexpected error occurred: {str(e)}')
         
         # If we get here, something went wrong
         context = {
             'form': form,
             'consultation_code': consultation_code,
-            'prescriptions': prescriptions,
+            'prescriptions': prescriptions if 'prescriptions' in locals() else [],
             'total_amount': sum(
                 prescription.quantity * prescription.medicine.unit_price 
                 for prescription in prescriptions
-            ) if 'prescriptions' in locals() else 0,
+            ) if prescriptions else 0,
+            'consultation': consultation if 'consultation' in locals() else None,
             'patient': patient,
         }
         return render(request, self.template_name, context)

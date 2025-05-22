@@ -99,16 +99,11 @@
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
             <ul id="pharmacy-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li>
-                    <a href="{% url 'medicine-list'%}">
-                        <i class="bi bi-prescription"></i> Medicine
-                    </a>
-                </li>
-                <li>
-                    <a href="#">
-                        <i class="bi bi-cart-plus"></i> Over-the-Counter Sales
-                    </a>
-                </li>
+                <li><a href="{% url 'medicine-list'%}"><i class="bi bi-capsule" style="color: #1a76d1;"></i> Medicine Inventory</a></li>
+                <li><a href="{% url 'medicine_sales_list'%}"><i class="bi bi-cash-stack" style="color: #1a76d1;"></i> Pharmacy Sales</a></li>
+                 <li><a href="{% url 'otc_sale_list'%}"><i class="bi bi-cash-stack" style="color: #1a76d1;"></i> Pharmacy Sales(OTC)</a></li>
+                <li><a href="{% url 'medicine_stock_list'%}"><i class="bi bi-exclamation-triangle" style="color: #1a76d1;"></i> Low Stock Alerts</a></li>
+                <li><a href="{% url 'medicine_category_list'%}"><i class="bi bi-tags" style="color: #1a76d1;"></i> Medicine Categories</a></li>
             </ul>
         </li>
 

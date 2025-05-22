@@ -91,6 +91,13 @@ def admin_dashboard_view(request):
     total_doctors = User.objects.filter(user_type='DOCTOR').count()
     total_medicines = Medicine.objects.count()
     total_revenue = MedicineSale.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+   
+    today = timezone.now().date()
+    
+    # Today's appointments
+    todays_appointments = Appointment.objects.filter(
+        scheduled_time__date=today
+    ).order_by('scheduled_time')
 
     # Top 5 diseases
     common_diseases = Disease.objects.annotate(
@@ -155,6 +162,7 @@ def admin_dashboard_view(request):
         'total_doctors': total_doctors,
         'total_medicines': total_medicines,
         'total_revenue': total_revenue,
+        'todays_appointments': todays_appointments,
         'date_filter': date_filter,
         'disease_labels': json.dumps(disease_labels),
         'disease_counts': json.dumps(disease_counts),

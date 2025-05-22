@@ -286,7 +286,7 @@
     <div class="calendar-container">
         {% if selected_doctor %}
             <div class="calendar-header">
-                <h2 class="mb-0">Dr. {{ selected_doctor }} - {{ month_name }} {{ selected_year }}</h2>
+                <h4 class="mb-0">Dr. {{ selected_doctor }} - {{ month_name }} {{ selected_year }}</h4>
                 <div class="calendar-nav">
                     <a href="?doctor_id={{ selected_doctor.id }}&month={{ prev_month.month }}&year={{ prev_month.year }}" class="btn btn-outline-primary">
                         <i class="fas fa-chevron-left"></i> Previous

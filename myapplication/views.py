@@ -2397,7 +2397,7 @@ class CreateMedicineSaleFromConsultation(View):
                     medicine_sale.save()
                     logger.info(f"Medicine sale created with ID: {medicine_sale.id}")
                     
-                    # Create SoldMedicine records for each prescription
+                    # Create SoldMedicine records for each prescription and update stock
                     for prescription in prescriptions:
                         sold_medicine = SoldMedicine.objects.create(
                             sale=medicine_sale,
@@ -2407,15 +2407,34 @@ class CreateMedicineSaleFromConsultation(View):
                         )
                         logger.info(f"Created SoldMedicine: {sold_medicine.id} for {prescription.medicine.name}")
                         
-                        # Update medicine stock
-                        medicine = prescription.medicine
-                        medicine.quantity_in_stock -= prescription.quantity
-                        medicine.save()
-                        logger.info(f"Updated stock for {medicine.name}: {medicine.quantity_in_stock}")
+                        # Update medicine stock with select_for_update for thread safety
+                        medicine = Medicine.objects.select_for_update().get(pk=prescription.medicine.pk)
+                        
+                        # Double-check stock availability (in case of concurrent sales)
+                        if medicine.quantity_in_stock >= prescription.quantity:
+                            medicine.quantity_in_stock -= prescription.quantity
+                            medicine.save(update_fields=['quantity_in_stock'])
+                            logger.info(f"Updated stock for {medicine.name}: new stock = {medicine.quantity_in_stock}")
+                        else:
+                            # If stock became insufficient due to concurrent sales, rollback
+                            raise ValueError(f"Insufficient stock for {medicine.name}. Available: {medicine.quantity_in_stock}, Required: {prescription.quantity}")
                     
                     messages.success(request, f'Medicine sale #{medicine_sale.id} created successfully')
                     return redirect('medicine_sale_detail', pk=medicine_sale.id)
                     
+                except ValueError as ve:
+                    logger.error(f"Stock validation error: {str(ve)}")
+                    messages.error(request, str(ve))
+                    # Re-render form with context
+                    context = {
+                        'form': form,
+                        'consultation_code': consultation_code,
+                        'prescriptions': prescriptions,
+                        'total_amount': total_amount,
+                        'consultation': consultation,
+                        'patient': patient,
+                    }
+                    return render(request, self.template_name, context)
                 except Exception as e:
                     logger.error(f"Error saving data: {str(e)}")
                     messages.error(request, f'Error saving data: {str(e)}')
@@ -2452,7 +2471,6 @@ class CreateMedicineSaleFromConsultation(View):
             'patient': patient,
         }
         return render(request, self.template_name, context)
-    
 
 
 from django.shortcuts import render, redirect, get_object_or_404

@@ -640,3 +640,39 @@ class OverTheCounterSaleItem(models.Model):
     
     class Meta:
         ordering = ['created_at']
+
+
+class Conversation(models.Model):
+    participant1 = models.ForeignKey(User, related_name='conversations_as_participant1', on_delete=models.CASCADE)
+    participant2 = models.ForeignKey(User, related_name='conversations_as_participant2', on_delete=models.CASCADE)
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('participant1', 'participant2', 'patient')
+
+    def __str__(self):
+        return f"Conversation between {self.participant1} and {self.participant2}"
+
+class Message(models.Model):
+    conversation = models.ForeignKey(Conversation, related_name='messages', on_delete=models.CASCADE)
+    sender = models.ForeignKey(User, on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['timestamp']
+
+    def __str__(self):
+        return f"Message from {self.sender} at {self.timestamp}"
+
+class ReceptionQueue(models.Model):
+    receptionist = models.ForeignKey(User, on_delete=models.CASCADE)
+    current_patient = models.ForeignKey(Patient, on_delete=models.SET_NULL, null=True, blank=True)
+    is_available = models.BooleanField(default=True)
+    last_updated = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Queue for {self.receptionist}"

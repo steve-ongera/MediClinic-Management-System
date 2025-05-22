@@ -287,3 +287,41 @@ class NurseAdmin(admin.ModelAdmin):
             )
         }),
     )
+
+
+from django.contrib import admin
+from .models import OverTheCounterSale, OverTheCounterSaleItem
+
+
+class OverTheCounterSaleItemInline(admin.TabularInline):
+    model = OverTheCounterSaleItem
+    extra = 1
+    readonly_fields = ('subtotal',)
+    fields = ('medicine', 'quantity', 'unit_price', 'subtotal')
+
+
+@admin.register(OverTheCounterSale)
+class OverTheCounterSaleAdmin(admin.ModelAdmin):
+    list_display = (
+        'sale_id',
+        'customer_name',
+        'total_amount',
+        'payment_status',
+        'cashier',
+        'created_at',
+        'updated_at',
+        'get_items_count',
+    )
+    list_filter = ('payment_status', 'created_at', 'cashier')
+    search_fields = ('sale_id', 'customer_name', 'mpesa_code', 'cashier__username')
+    readonly_fields = ('sale_id', 'created_at', 'updated_at')
+    inlines = [OverTheCounterSaleItemInline]
+
+
+@admin.register(OverTheCounterSaleItem)
+class OverTheCounterSaleItemAdmin(admin.ModelAdmin):
+    list_display = ('sale', 'medicine', 'quantity', 'unit_price', 'subtotal', 'created_at')
+    list_filter = ('created_at', 'medicine')
+    search_fields = ('sale__sale_id', 'medicine__name')
+    readonly_fields = ('subtotal',)
+

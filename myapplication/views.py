@@ -1947,6 +1947,11 @@ def help_support(request):
     return render(request, 'help_support.html')
 
 
+@login_required
+def user_manual(request):
+    return render(request, 'user-manual.html')
+
+
 
 from django.shortcuts import render
 from django.contrib import messages

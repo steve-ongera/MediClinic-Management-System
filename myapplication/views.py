@@ -2627,3 +2627,151 @@ class GetMedicineInfoView(LoginRequiredMixin, View):
                 'success': False,
                 'error': str(e)
             }, status=500)
+        
+
+
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.http import require_POST
+from .models import Conversation, Message, ReceptionQueue
+import json
+
+@login_required
+def chat_home(request):
+    # Get all users that the current user can chat with (doctors, admins, or receptionists)
+    if request.user.userprofile.is_doctor or request.user.userprofile.is_admin:
+        chat_partners = User.objects.filter(
+            userprofile__is_receptionist=True
+        ).exclude(id=request.user.id)
+    else:
+        chat_partners = User.objects.filter(
+            models.Q(userprofile__is_doctor=True) | 
+            models.Q(userprofile__is_admin=True)
+        ).exclude(id=request.user.id)
+    
+    # Get active patient if any
+    active_patient_id = request.GET.get('patient_id')
+    active_patient = None
+    if active_patient_id:
+        active_patient = get_object_or_404(Patient, id=active_patient_id)
+    
+    return render(request, 'communication/chat_home.html', {
+        'chat_partners': chat_partners,
+        'active_patient': active_patient
+    })
+
+@login_required
+def conversation(request, user_id, patient_id=None):
+    other_user = get_object_or_404(User, id=user_id)
+    patient = None
+    
+    if patient_id:
+        patient = get_object_or_404(Patient, id=patient_id)
+    
+    # Get or create conversation
+    conversation, created = Conversation.objects.get_or_create(
+        participant1=request.user,
+        participant2=other_user,
+        patient=patient
+    )
+    
+    # Mark messages as read
+    Message.objects.filter(
+        conversation=conversation,
+        sender=other_user,
+        is_read=False
+    ).update(is_read=True)
+    
+    messages = conversation.messages.all().order_by('timestamp')
+    
+    return render(request, 'communication/conversation.html', {
+        'conversation': conversation,
+        'messages': messages,
+        'other_user': other_user,
+        'patient': patient
+    })
+
+@login_required
+@require_POST
+def send_message(request):
+    data = json.loads(request.body)
+    conversation_id = data.get('conversation_id')
+    content = data.get('content')
+    
+    conversation = get_object_or_404(Conversation, id=conversation_id)
+    
+    if request.user not in [conversation.participant1, conversation.participant2]:
+        return JsonResponse({'status': 'error', 'message': 'Not authorized'}, status=403)
+    
+    message = Message.objects.create(
+        conversation=conversation,
+        sender=request.user,
+        content=content
+    )
+    
+    return JsonResponse({
+        'status': 'success',
+        'message': {
+            'content': message.content,
+            'timestamp': message.timestamp.strftime('%b %d, %Y %I:%M %p'),
+            'sender_id': message.sender.id
+        }
+    })
+
+@login_required
+def get_new_messages(request, conversation_id, last_message_id):
+    conversation = get_object_or_404(Conversation, id=conversation_id)
+    
+    if request.user not in [conversation.participant1, conversation.participant2]:
+        return JsonResponse({'status': 'error', 'message': 'Not authorized'}, status=403)
+    
+    new_messages = conversation.messages.filter(
+        id__gt=last_message_id,
+        sender=conversation.participant2 if request.user == conversation.participant1 else conversation.participant1
+    ).order_by('timestamp')
+    
+    # Mark as read
+    new_messages.update(is_read=True)
+    
+    messages_data = [{
+        'id': msg.id,
+        'content': msg.content,
+        'timestamp': msg.timestamp.strftime('%b %d, %Y %I:%M %p'),
+        'sender_id': msg.sender.id
+    } for msg in new_messages]
+    
+    return JsonResponse({
+        'status': 'success',
+        'messages': messages_data
+    })
+
+@login_required
+def call_patient(request, patient_id):
+    if not request.user.userprofile.is_doctor and not request.user.userprofile.is_admin:
+        return JsonResponse({'status': 'error', 'message': 'Not authorized'}, status=403)
+    
+    patient = get_object_or_404(Patient, id=patient_id)
+    
+    # Get or create reception queue
+    queue, created = ReceptionQueue.objects.get_or_create(receptionist=request.user)
+    queue.current_patient = patient
+    queue.is_available = False
+    queue.save()
+    
+    # Send notification to reception
+    # You would implement your notification system here
+    
+    return JsonResponse({'status': 'success', 'patient_name': patient.get_full_name()})
+
+@login_required
+def next_patient(request):
+    if not request.user.userprofile.is_receptionist:
+        return JsonResponse({'status': 'error', 'message': 'Not authorized'}, status=403)
+    
+    queue = get_object_or_404(ReceptionQueue, receptionist=request.user)
+    queue.current_patient = None
+    queue.is_available = True
+    queue.save()
+    
+    return JsonResponse({'status': 'success'})

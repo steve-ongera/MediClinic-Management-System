@@ -90,7 +90,11 @@ def admin_dashboard_view(request):
     total_patients = Patient.objects.count()
     total_doctors = User.objects.filter(user_type='DOCTOR').count()
     total_medicines = Medicine.objects.count()
-    total_revenue = MedicineSale.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+    
+    # Total revenue from both MedicineSale and OverTheCounterSale
+    medicine_sale_revenue = MedicineSale.objects.aggregate(total=Sum('total_amount'))['total'] or 0
+    otc_sale_revenue = OverTheCounterSale.objects.filter(payment_status='completed').aggregate(total=Sum('total_amount'))['total'] or 0
+    total_revenue = medicine_sale_revenue + otc_sale_revenue
    
     today = timezone.now().date()
     
@@ -123,9 +127,11 @@ def admin_dashboard_view(request):
     medicine_labels = [item['medicine__name'] for item in best_selling]
     medicine_counts = [item['total_sold'] or 0 for item in best_selling]  # Ensure no None values
 
-    # Line chart sales data - LAST 7 DAYS ONLY
+    # Line chart sales data - LAST 7 DAYS ONLY - Combined Medicine Sales and OTC Sales
     last_7_days = timezone.now() - timedelta(days=7)
-    sales_data = MedicineSale.objects.filter(
+    
+    # Get MedicineSale data
+    medicine_sales_data = MedicineSale.objects.filter(
         sale_date__gte=last_7_days
     ).annotate(
         date=Trunc('sale_date', 'day', output_field=DateTimeField())
@@ -133,8 +139,32 @@ def admin_dashboard_view(request):
         total=Sum('total_amount')
     ).order_by('date')
 
-    sales_dates = [item['date'].strftime('%Y-%m-%d') for item in sales_data]
-    sales_amounts = [float(item['total']) for item in sales_data]
+    # Get OverTheCounterSale data
+    otc_sales_data = OverTheCounterSale.objects.filter(
+        created_at__gte=last_7_days,
+        payment_status='completed'
+    ).annotate(
+        date=Trunc('created_at', 'day', output_field=DateTimeField())
+    ).values('date').annotate(
+        total=Sum('total_amount')
+    ).order_by('date')
+
+    # Combine both sales data by date
+    combined_sales = {}
+    
+    # Add medicine sales
+    for item in medicine_sales_data:
+        date_str = item['date'].strftime('%Y-%m-%d')
+        combined_sales[date_str] = combined_sales.get(date_str, 0) + float(item['total'])
+    
+    # Add OTC sales
+    for item in otc_sales_data:
+        date_str = item['date'].strftime('%Y-%m-%d')
+        combined_sales[date_str] = combined_sales.get(date_str, 0) + float(item['total'])
+
+    # Sort by date and prepare for chart
+    sales_dates = sorted(combined_sales.keys())
+    sales_amounts = [combined_sales[date] for date in sales_dates]
 
     # Payment method stats - still using the selected date filter
     payment_methods = MedicineSale.objects.filter(

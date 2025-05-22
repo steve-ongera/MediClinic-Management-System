@@ -94,4 +94,12 @@ urlpatterns = [
     path('otc-sales/create/', views.CreateOverTheCounterSaleView.as_view(), name='create_otc_sale'),
     path('api/medicine-info/', views.GetMedicineInfoView.as_view(), name='get_medicine_info'),
 
+    #communication apis
+    path('chat_home/', views.chat_home, name='chat_home'),
+    path('conversation/<int:user_id>/', views.conversation, name='conversation'),
+    path('send_message/', views.send_message, name='send_message'),
+    path('get_new_messages/<int:conversation_id>/<int:last_message_id>/', views.get_new_messages, name='get_new_messages'),
+    path('call_patient/<int:patient_id>/', views.call_patient, name='call_patient'),
+    path('next_patient/', views.next_patient, name='next_patient'),
+
 ]

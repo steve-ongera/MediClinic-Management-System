@@ -2629,25 +2629,22 @@ class GetMedicineInfoView(LoginRequiredMixin, View):
             }, status=500)
         
 
-
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from .models import Conversation, Message, ReceptionQueue
+from django.db.models import Q
+from .models import Conversation, Message, ReceptionQueue, Patient, User
 import json
 
 @login_required
 def chat_home(request):
     # Get all users that the current user can chat with (doctors, admins, or receptionists)
-    if request.user.userprofile.is_doctor or request.user.userprofile.is_admin:
-        chat_partners = User.objects.filter(
-            userprofile__is_receptionist=True
-        ).exclude(id=request.user.id)
+    if request.user.user_type in ['DOCTOR', 'ADMIN']:
+        chat_partners = User.objects.filter(user_type='RECEPTIONIST').exclude(id=request.user.id)
     else:
         chat_partners = User.objects.filter(
-            models.Q(userprofile__is_doctor=True) | 
-            models.Q(userprofile__is_admin=True)
+            Q(user_type='DOCTOR') | Q(user_type='ADMIN')
         ).exclude(id=request.user.id)
     
     # Get active patient if any
@@ -2748,7 +2745,7 @@ def get_new_messages(request, conversation_id, last_message_id):
 
 @login_required
 def call_patient(request, patient_id):
-    if not request.user.userprofile.is_doctor and not request.user.userprofile.is_admin:
+    if request.user.user_type not in ['DOCTOR', 'ADMIN']:
         return JsonResponse({'status': 'error', 'message': 'Not authorized'}, status=403)
     
     patient = get_object_or_404(Patient, id=patient_id)
@@ -2759,14 +2756,13 @@ def call_patient(request, patient_id):
     queue.is_available = False
     queue.save()
     
-    # Send notification to reception
-    # You would implement your notification system here
+    # Send notification to reception (placeholder comment)
     
     return JsonResponse({'status': 'success', 'patient_name': patient.get_full_name()})
 
 @login_required
 def next_patient(request):
-    if not request.user.userprofile.is_receptionist:
+    if request.user.user_type != 'RECEPTIONIST':
         return JsonResponse({'status': 'error', 'message': 'Not authorized'}, status=403)
     
     queue = get_object_or_404(ReceptionQueue, receptionist=request.user)
@@ -2775,3 +2771,4 @@ def next_patient(request):
     queue.save()
     
     return JsonResponse({'status': 'success'})
+

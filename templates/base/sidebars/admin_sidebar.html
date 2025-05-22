@@ -93,9 +93,7 @@
             </a>
             <ul id="staff-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
                 <li><a href="{% url 'doctor_list'%}"><i class="bi bi-person-hearts" style="color: #1a76d1;"></i> Doctors</a></li>
-                <li><a href="#"><i class="bi bi-person-plus" style="color: #1a76d1;"></i> Nurses</a></li>
-                <li><a href="#"><i class="bi bi-people" style="color: #1a76d1;"></i> All Staff</a></li>
-                <li><a href="#"><i class="bi bi-calendar-range" style="color: #1a76d1;"></i> Schedules</a></li>
+               
             </ul>
         </li>
 
@@ -134,6 +132,18 @@
             <a class="nav-link collapsed" href="{% url 'user_manual'%}">
                 <i class="bi bi-journal-text" style="color: #2980b9;"></i>
                 <span >User Manual</span>
+            </a>
+        </li>
+
+        <!-- Quick Actions -->
+        <li class="nav-heading">Quick Actions</li>
+
+        
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="{% url 'chat_home'%}">
+                <i class="bi bi-bell"></i>
+                <span>Call Next Patient</span>
             </a>
         </li>
 

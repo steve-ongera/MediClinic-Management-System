@@ -2,8 +2,8 @@
 {% load static %}
 
 {% block title %}Clinical Communication Platform{% endblock %}
+{% block content %}
 
-{% block extra_css %}
 <style>
     /* Clinic Blue Theme */
     :root {
@@ -144,9 +144,9 @@
         margin-left: auto;
     }
 </style>
-{% endblock %}
 
-{% block content %}
+
+
 <div class="container-fluid">
     <!-- Page Header -->
     <div class="d-sm-flex align-items-center justify-content-between mb-4">
@@ -207,7 +207,7 @@
                         {% if other_user.userprofile.is_receptionist %}Receptionist{% endif %}
                     </small>
                     {% else %}
-                    <h5 class="mb-0">Select a conversation</h5>
+                    <h5 style="color:white;" class="mb-0">Select a conversation</h5>
                     {% endif %}
                 </div>
                 {% if patient %}
@@ -235,9 +235,9 @@
                     </div>
                     {% endfor %}
                 {% else %}
-                    <div class="text-center py-5">
+                    <div style="color:white;" class="text-center py-5">
                         <i class="fas fa-comments fa-3x text-muted mb-3"></i>
-                        <h5 class="text-muted">Select a conversation to start chatting</h5>
+                        <h5  class="text-muted">Select a conversation to start chatting</h5>
                     </div>
                 {% endif %}
             </div>
@@ -259,9 +259,7 @@
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_js %}
 <script>
     // Load conversation when a contact is clicked
     function loadConversation(userId, patientId = null) {

@@ -213,6 +213,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.shortcuts import render
 from django.utils import timezone
+from django.db.models import Max
 
 @login_required
 def doctor_dashboard(request):
@@ -254,9 +255,18 @@ def doctor_dashboard(request):
     ) if getattr(doctor, 'is_senior', False) else Prescription.objects.none()
 
     # Get critical patients (assuming last_consultation exists and links to Consultation)
-    critical_patients = Patient.objects.filter(
-        last_consultation__appointment__doctor=doctor
-    )[:5]
+   # Get latest consultation per patient seen by this doctor
+    latest_consults = Consultation.objects.filter(
+        appointment__doctor=doctor
+    ).values('appointment__patient').annotate(
+        latest=Max('created_at')
+    ).order_by('-latest')[:5]
+
+    # Get patient IDs
+    latest_patient_ids = [item['appointment__patient'] for item in latest_consults]
+
+    # Get actual Patient objects
+    critical_patients = Patient.objects.filter(id__in=latest_patient_ids)
 
     context = {
         'doctor': doctor,

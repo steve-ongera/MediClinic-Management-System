@@ -94,25 +94,25 @@
                 <h5 class="card-title">Quick Actions</h5>
                 <div class="row text-center">
                   <div class="col-md-3 col-6 mb-3">
-                    <a href="{% url 'start_consultation' %}" class="btn btn-primary btn-sm w-100 py-2">
+                    <a href="{% url 'new_consultation'%}" class="btn btn-primary btn-sm w-100 py-2">
                       <i class="bi bi-clipboard-plus"></i><br>
                       New Consultation
                     </a>
                   </div>
                   <div class="col-md-3 col-6 mb-3">
-                    <a href="{% url 'patient_search' %}" class="btn btn-outline-primary btn-sm w-100 py-2">
+                    <a href="{% url 'patients-list'%}" class="btn btn-outline-primary btn-sm w-100 py-2">
                       <i class="bi bi-search"></i><br>
-                      Patient Search
+                      Patient Records
                     </a>
                   </div>
                   <div class="col-md-3 col-6 mb-3">
-                    <a href="{% url 'prescription_list' %}" class="btn btn-outline-primary btn-sm w-100 py-2">
+                    <a href="{% url 'medicine-list'%}" class="btn btn-outline-primary btn-sm w-100 py-2">
                       <i class="bi bi-capsule"></i><br>
-                      Prescriptions
+                      Pharmacy
                     </a>
                   </div>
                   <div class="col-md-3 col-6 mb-3">
-                    <a href="{% url 'doctor_schedule' %}" class="btn btn-outline-primary btn-sm w-100 py-2">
+                    <a href="{% url 'doctor_calendar_view'%}" class="btn btn-outline-primary btn-sm w-100 py-2">
                       <i class="bi bi-calendar-week"></i><br>
                       My Schedule
                     </a>
@@ -142,7 +142,7 @@
                       {% for appointment in todays_appointments|slice:":5" %}
                       <tr>
                         <td>{{ appointment.scheduled_time|time:"H:i" }}</td>
-                        <td>{{ appointment.patient.full_name }}</td>
+                        <td>{{ appointment.patient.first_name }}  {{ appointment.patient.last_name }}</td>
                         <td>{{ appointment.reason|truncatechars:20 }}</td>
                         <td>
                           <span class="badge bg-{% if appointment.status == 'COMPLETED' %}success{% elif appointment.status == 'CANCELLED' %}danger{% elif appointment.status == 'IN_PROGRESS' %}info{% else %}warning{% endif %}">
@@ -176,10 +176,8 @@
                     <div class="card border-primary">
                       <div class="card-body">
                         <div class="d-flex justify-content-between">
-                          <h6 class="card-title">{{ consultation.appointment.patient.full_name }}</h6>
-                          <span class="badge bg-{% if consultation.status == 'COMPLETED' %}success{% else %}info{% endif %}">
-                            {{ consultation.get_status_display }}
-                          </span>
+                          <h6 class="card-title">{{ consultation.appointment.patient.first_name }} {{ consultation.appointment.patient.last_name }}</h6>
+                         
                         </div>
                         <p class="card-text small">
                           <i class="bi bi-calendar"></i> {{ consultation.created_at|date:"M d, Y H:i" }}<br>
@@ -188,7 +186,7 @@
                         <div class="d-flex justify-content-between">
                           <a href="{% url 'consultation_detail' consultation.id %}" class="btn btn-sm btn-outline-primary">View</a>
                           {% if consultation.status != 'COMPLETED' %}
-                          <a href="{% url 'complete_consultation' consultation.id %}" class="btn btn-sm btn-primary">Complete</a>
+                          <a href="#" class="btn btn-sm btn-primary">Complete</a>
                           {% endif %}
                         </div>
                       </div>
@@ -209,18 +207,55 @@
           <div class="card-body">
             <h5 class="card-title">Medical Updates</h5>
             <div class="news">
-              {% for update in medical_updates %}
-              <div class="post-item {% if update.is_new %}bg-light{% endif %} p-2 mb-2 rounded">
-                <h6>{{ update.title }}</h6>
-                <p class="small">{{ update.content|truncatechars:100 }}</p>
+              
+              <div class="post-item bg-light p-2 mb-2 rounded">
+                <h6>WHO Warns of Rising Antibiotic Resistance</h6>
+                <p class="small">The World Health Organization reports a concerning increase in antibiotic resistance worldwide due to overuse and misuse of medication...</p>
                 <div class="d-flex justify-content-between">
-                  <span class="small text-muted">{{ update.created_at|timesince }} ago</span>
+                  <span class="small text-muted">2 hours ago</span>
                   <a href="#" class="small">Read More</a>
                 </div>
               </div>
-              {% endfor %}
+
+              <div class="post-item p-2 mb-2 rounded">
+                <h6>New Study Links Sleep Deprivation to Heart Disease</h6>
+                <p class="small">Researchers have found that individuals who regularly sleep less than 6 hours have a higher risk of developing cardiovascular problems...</p>
+                <div class="d-flex justify-content-between">
+                  <span class="small text-muted">6 hours ago</span>
+                  <a href="#" class="small">Read More</a>
+                </div>
+              </div>
+
+              <div class="post-item bg-light p-2 mb-2 rounded">
+                <h6>Updated COVID-19 Booster Now Available</h6>
+                <p class="small">The Ministry of Health has announced that a new booster dose targeting recent COVID variants is now available at public hospitals...</p>
+                <div class="d-flex justify-content-between">
+                  <span class="small text-muted">1 day ago</span>
+                  <a href="#" class="small">Read More</a>
+                </div>
+              </div>
+
+              <div class="post-item p-2 mb-2 rounded">
+                <h6>Kenya Launches National Mental Health Campaign</h6>
+                <p class="small">A nationwide campaign has been launched to raise awareness and reduce stigma associated with mental health conditions...</p>
+                <div class="d-flex justify-content-between">
+                  <span class="small text-muted">2 days ago</span>
+                  <a href="#" class="small">Read More</a>
+                </div>
+              </div>
+
+              <div class="post-item bg-light p-2 mb-2 rounded">
+                <h6>New Breakthrough in Diabetes Management</h6>
+                <p class="small">Scientists have developed a smart insulin patch that could revolutionize diabetes management by detecting glucose levels automatically...</p>
+                <div class="d-flex justify-content-between">
+                  <span class="small text-muted">3 days ago</span>
+                  <a href="#" class="small">Read More</a>
+                </div>
+              </div>
+
             </div>
           </div>
+
         </div><!-- End Announcements -->
 
         <!-- Patient Alerts -->

@@ -1,129 +1,145 @@
 {% load static %}
-<!-- ======= Coca-Cola Manager Sidebar ======= -->
-<aside id="sidebar" class="sidebar" >
-    
+<!-- ======= Clinic Reception Sidebar ======= -->
+<aside id="sidebar" class="sidebar">
+    <div class="sidebar-brand text-center py-3 bg-white">
+        <img src="{% static 'assets/img/mediclinic-logo.png' %}" alt="Clinic Logo" style="height: 40px;">
+        <h6 class="mt-2 text-uppercase" style="color: #1a76d1; font-weight: 600;">Doctor PORTAL</h6>
+    </div>
 
     <ul class="sidebar-nav" id="sidebar-nav">
 
-        <!-- Manager Dashboard -->
+        <!-- Reception Dashboard -->
         <li class="nav-item">
-            <a class="nav-link" href="#" style="border-left: 3px solid #f40009;">
-                <i class="bi bi-bar-chart-line" style="color: #f40009;"></i>
-                <span>Performance Dashboard</span>
+            <a class="nav-link" href="{% url 'doctor_dashboard'%}" style="border-left: 3px solid #1a76d1;">
+                <i class="bi bi-speedometer2" style="color: #1a76d1;"></i>
+                <span>Doctor Dashboard</span>
             </a>
         </li>
 
-        <!-- Team Management -->
+        <!-- Patient Management -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#team-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-people-fill" style="color: #f40009;"></i>
-                <span>My Team</span>
+            <a class="nav-link collapsed" data-bs-target="#patient-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-people" style="color: #1a76d1;"></i>
+                <span>Patient Management</span>
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="team-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li><a href="#"><i class="bi bi-person-lines-fill"></i> Team Roster</a></li>
-                <li><a href="#"><i class="bi bi-calendar-range"></i> Shift Scheduling</a></li>
-                <li><a href="#"><i class="bi bi-clipboard-pulse"></i> Performance Reviews</a></li>
-                <li><a href="#"><i class="bi bi-chat-left-text"></i> 1:1 Meetings</a></li>
-                <li><a href="#"><i class="bi bi-file-earmark-medical"></i> Leave Approvals</a></li>
+            <ul id="patient-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li>
+                    <a href="{% url 'patients-create'%}">
+                        <i class="bi bi-person-plus"></i> New Patient Registration
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'patients-list'%}">
+                        <i class="bi bi-card-checklist"></i> Patient Records
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'all_medical_records'%}">
+                        <i class="bi bi-file-medical"></i> Medical History
+                    </a>
+                </li>
             </ul>
         </li>
 
-        <!-- Production Oversight -->
+        <!-- Appointment Scheduling -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#production-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-cup-straw" style="color: #f40009;"></i>
-                <span>Production Control</span>
+            <a class="nav-link collapsed" data-bs-target="#appointment-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-calendar-check" style="color: #1a76d1;"></i>
+                <span>Appointments</span>
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="production-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li><a href="#"><i class="bi bi-clipboard2-pulse"></i> Line Efficiency</a></li>
-                <li><a href="#"><i class="bi bi-clipboard-check"></i> Quality Reports</a></li>
-                <li><a href="#"><i class="bi bi-speedometer2"></i> Real-Time Metrics</a></li>
-                <li><a href="#"><i class="bi bi-exclamation-triangle"></i> Incident Logs</a></li>
+            <ul id="appointment-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li>
+                    <a href="{% url 'new_consultation'%}">
+                        <i class="bi bi-plus-circle"></i> Schedule Appointment
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'doctor_calendar_view'%}">
+                        <i class="bi bi-list-ul"></i> Today's Appointments
+                    </a>
+                </li>
+                
             </ul>
         </li>
 
-        <!-- Inventory & Supply -->
+        <!-- Billing -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#inventory-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-box-seam" style="color: #f40009;"></i>
-                <span>Inventory</span>
+            <a class="nav-link collapsed" data-bs-target="#billing-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-cash-stack" style="color: #1a76d1;"></i>
+                <span>Billing & Payments</span>
                 <i class="bi bi-chevron-down ms-auto"></i>
             </a>
-            <ul id="inventory-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li><a href="#"><i class="bi bi-box-arrow-down"></i> Stock Levels</a></li>
-                <li><a href="#"><i class="bi bi-card-checklist"></i> Order Approvals</a></li>
-                <li><a href="#"><i class="bi bi-arrow-repeat"></i> Reorder Points</a></li>
-                <li><a href="#"><i class="bi bi-shuffle"></i> Transfers</a></li>
+            <ul id="billing-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+             
+                <li>
+                    <a href="{% url 'create_sale_from_consultation'%}">
+                        <i class="bi bi-credit-card"></i> Process Payment
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'medicine_sales_list'%}">
+                        <i class="bi bi-file-earmark-text"></i> Payment  Records
+                    </a>
+                </li>
+                <li>
+                    <a href="{% url 'otc_sale_list'%}">
+                        <i class="bi bi-file-earmark-text"></i> OTC sales
+                    </a>
+                </li>
             </ul>
         </li>
 
-        <!-- Reports -->
+        <!-- Pharmacy -->
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#reports-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-file-earmark-bar-graph" style="color: #f40009;"></i>
+            <a class="nav-link collapsed" data-bs-target="#pharmacy-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-capsule" style="color: #1a76d1;"></i>
+                <span>Pharmacy</span>
+                <i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="pharmacy-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
+                <li><a href="{% url 'medicine-list'%}"><i class="bi bi-capsule" style="color: #1a76d1;"></i> Medicine Inventory</a></li>
+                <li><a href="{% url 'medicine_sales_list'%}"><i class="bi bi-cash-stack" style="color: #1a76d1;"></i> Pharmacy Sales</a></li>
+                 <li><a href="{% url 'otc_sale_list'%}"><i class="bi bi-cash-stack" style="color: #1a76d1;"></i> Pharmacy Sales(OTC)</a></li>
+                <li><a href="{% url 'medicine_stock_list'%}"><i class="bi bi-exclamation-triangle" style="color: #1a76d1;"></i> Low Stock Alerts</a></li>
+                <li><a href="{% url 'medicine_category_list'%}"><i class="bi bi-tags" style="color: #1a76d1;"></i> Medicine Categories</a></li>
+            </ul>
+        </li>
+
+        <!-- Clinic Administration -->
+        <li class="nav-heading" style="color: #1a76d1;">Clinic Administration</li>
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="{% url 'clinical_reports'%}">
+                <i class="bi bi-file-earmark-medical" style="color: #1a76d1;"></i>
                 <span>Reports</span>
-                <i class="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <ul id="reports-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li><a href="#"><i class="bi bi-people"></i> Labor Productivity</a></li>
-                <li><a href="#"><i class="bi bi-currency-dollar"></i> Cost Analysis</a></li>
-                <li><a href="#"><i class="bi bi-clock-history"></i> Overtime Trends</a></li>
-                <li><a href="#"><i class="bi bi-check-circle"></i> Compliance</a></li>
-            </ul>
-        </li>
-
-        <!-- Coca-Cola Tools -->
-        <li class="nav-heading" style="color: #f40009;">Coca-Cola Tools</li>
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="#">
-                <i class="bi bi-megaphone" style="color: #f40009;"></i>
-                <span>Brand Standards</span>
             </a>
         </li>
 
+        
+
         <li class="nav-item">
-            <a class="nav-link collapsed" href="#">
-                <i class="bi bi-shield-check" style="color: #f40009;"></i>
-                <span>Safety Portal</span>
+            <a class="nav-link collapsed" href="{% url 'user_manual'%}">
+                <i class="bi bi-gear" style="color: #1a76d1;"></i>
+                <span>User Manual</span>
+            </a>
+        </li>
+
+        <!-- Quick Actions -->
+        <li class="nav-heading">Quick Actions</li>
+
+        
+
+        <li class="nav-item">
+            <a class="nav-link collapsed" href="{% url 'chat_home'%}">
+                <i class="bi bi-bell"></i>
+                <span>Call Next Patient</span>
             </a>
         </li>
 
         <li class="nav-item">
-            <a class="nav-link collapsed" data-bs-target="#kpi-nav" data-bs-toggle="collapse" href="#">
-                <i class="bi bi-award" style="color: #f40009;"></i>
-                <span>KPI Dashboard</span>
-                <i class="bi bi-chevron-down ms-auto"></i>
-            </a>
-            <ul id="kpi-nav" class="nav-content collapse" data-bs-parent="#sidebar-nav">
-                <li><a href="#"><i class="bi bi-graph-up-arrow"></i> Production Targets</a></li>
-                <li><a href="#"><i class="bi bi-check2-square"></i> Quality Goals</a></li>
-                <li><a href="#"><i class="bi bi-currency-dollar"></i> Cost Metrics</a></li>
-            </ul>
-        </li>
-
-        <!-- Personal -->
-        <li class="nav-heading">Personal</li>
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="#">
-                <i class="bi bi-person-gear"></i>
-                <span>Manager Profile</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="#">
-                <i class="bi bi-envelope"></i>
-                <span>Leadership Alerts</span>
-                <span class="badge bg-danger float-end">3</span>
-            </a>
-        </li>
-
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="#">
+            <a class="nav-link collapsed" href="{% url 'logout'%}">
                 <i class="bi bi-box-arrow-right"></i>
                 <span>Logout</span>
             </a>
@@ -131,13 +147,18 @@
 
     </ul>
 
-    <!-- Quick Actions -->
+    <!-- Emergency Actions -->
     <div class="sidebar-footer p-3">
         <button class="btn btn-sm btn-danger w-100 mb-2">
-            <i class="bi bi-exclamation-triangle"></i> Incident Report
+            <i class="bi bi-exclamation-triangle"></i> Emergency Alert
         </button>
-        <button class="btn btn-sm btn-outline-danger w-100">
-            <i class="bi bi-lightning-charge"></i> Quick Approval
-        </button>
+        <div class="btn-group w-100">
+            <button class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-person-lines-fill"></i> Call Doctor
+            </button>
+            <button class="btn btn-sm btn-outline-primary">
+                <i class="bi bi-ambulance"></i> Emergency
+            </button>
+        </div>
     </div>
 </aside>

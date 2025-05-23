@@ -209,6 +209,134 @@ def admin_dashboard_view(request):
     return render(request, 'dashboard/admin_dashboard.html', context)
 
 
+from django.contrib.auth.decorators import login_required
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import render
+from django.utils import timezone
+
+@login_required
+def doctor_dashboard(request):
+    if request.user.user_type != 'DOCTOR':
+        raise PermissionDenied("Access denied. Only doctors can view this page.")
+
+    doctor = request.user
+    today = timezone.now().date()
+
+    # Get today's appointments
+    todays_appointments = Appointment.objects.filter(
+        doctor=doctor,
+        scheduled_time__date=today
+    ).order_by('scheduled_time')
+
+    # Get today's consultations
+    todays_consultations = Consultation.objects.filter(
+        appointment__doctor=doctor,
+        created_at__date=today
+    ).order_by('-created_at')
+
+    # Get recent consultations (last 7 days)
+    recent_consultations = Consultation.objects.filter(
+        appointment__doctor=doctor,
+        created_at__gte=today - timezone.timedelta(days=7)
+    ).order_by('-created_at')[:6]
+
+    # Get pending prescriptions (assuming you add a `status` field later)
+    pending_prescriptions = Prescription.objects.filter(
+        consultation__appointment__doctor=doctor,
+        consultation__appointment__status='COMPLETED'  # optional filter
+    )
+
+    # Get pending approvals (optional, requires doctor.is_senior if used)
+    pending_approvals = Prescription.objects.filter(
+        consultation__appointment__doctor=doctor,
+        consultation__appointment__status='COMPLETED',  # optional
+        consultation__follow_up_notes__isnull=False     # example condition
+    ) if getattr(doctor, 'is_senior', False) else Prescription.objects.none()
+
+    # Get critical patients (assuming last_consultation exists and links to Consultation)
+    critical_patients = Patient.objects.filter(
+        last_consultation__appointment__doctor=doctor
+    )[:5]
+
+    context = {
+        'doctor': doctor,
+        'todays_appointments': todays_appointments,
+        'todays_consultations': todays_consultations,
+        'recent_consultations': recent_consultations,
+        'pending_prescriptions': pending_prescriptions,
+        'pending_approvals': pending_approvals,
+        'critical_patients': critical_patients,
+    }
+
+    return render(request, 'dashboard/doctor_dashboard.html', context)
+
+
+# from django.core.exceptions import PermissionDenied
+# @login_required
+# def doctor_dashboard(request):
+
+#     if request.user.user_type != 'DOCTOR':
+#         raise PermissionDenied("Access denied. Only doctors can view this page.")
+    
+#     doctor = request.user  # Since your User model includes doctor info
+
+#     today = timezone.now().date()
+    
+#     # Get today's appointments
+#     todays_appointments = Appointment.objects.filter(
+#         doctor=doctor,
+#         scheduled_time__date=today
+#     ).order_by('scheduled_time')
+    
+#     # Get today's consultations
+#     todays_consultations = Consultation.objects.filter(
+#         appointment__doctor=doctor,
+#         created_at__date=today
+#     ).order_by('-created_at')
+    
+#     # Get recent consultations (last 7 days)
+#     recent_consultations = Consultation.objects.filter(
+#         appointment__doctor=doctor,
+#         created_at__gte=today-timezone.timedelta(days=7)
+#     ).order_by('-created_at')[:6]
+    
+#     # Get pending prescriptions
+#     pending_prescriptions = Prescription.objects.filter(
+#         doctor=doctor,
+#         status='PENDING'
+#     )
+    
+#     # Get pending approvals (if doctor is a senior/approver)
+#     Prescription.objects.filter(
+#         consultation__appointment__doctor=doctor,
+#         status='PENDING'
+#     )
+
+    
+#     # Get critical patients
+#     critical_patients = Patient.objects.filter(
+#         is_critical=True,
+#         last_consultation__doctor=doctor
+#     )[:5]
+    
+#     # Get medical updates
+#     # medical_updates = MedicalUpdate.objects.filter(
+#     #     publish_date__lte=timezone.now()
+#     # ).order_by('-publish_date')[:3]
+    
+#     context = {
+#         'doctor': doctor,
+#         'todays_appointments': todays_appointments,
+#         'todays_consultations': todays_consultations,
+#         'recent_consultations': recent_consultations,
+#         'pending_prescriptions': pending_prescriptions,
+#         'pending_approvals': pending_approvals,
+#         'critical_patients': critical_patients,
+#         #'medical_updates': medical_updates,
+#     }
+    
+#     return render(request, 'dashboard/doctor_dashboard.html', context)
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.core.paginator import Paginator
 from django.contrib import messages

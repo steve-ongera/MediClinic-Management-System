@@ -325,3 +325,9 @@ class OverTheCounterSaleItemAdmin(admin.ModelAdmin):
     search_fields = ('sale__sale_id', 'medicine__name')
     readonly_fields = ('subtotal',)
 
+
+
+# Custom admin site configuration
+admin.site.site_header = "Nebo Administration"  # Top of admin pages
+admin.site.site_title = "Nebo Admin"           # Browser tab title
+admin.site.index_title = "Welcome to Nebo Admin Portal"  # Dashboard heading

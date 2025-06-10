@@ -4,7 +4,7 @@ from django.contrib import admin
 from django.urls import path, include  # include if you have other apps
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('nebo-admin/', admin.site.urls),
     path('', include('myapplication.urls')),  # Replace 'myapplication' with your app name
 ]
 
